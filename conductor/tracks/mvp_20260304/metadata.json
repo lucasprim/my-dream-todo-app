@@ -1,0 +1,19 @@
+{
+  "id": "mvp_20260304",
+  "title": "MVP - Initial Version",
+  "type": "feature",
+  "status": "in_progress",
+  "created": "2026-03-04T00:00:00Z",
+  "updated": "2026-03-04T00:00:00Z",
+  "current_phase": 1,
+  "current_task": "1.1",
+  "phases": {
+    "total": 10,
+    "completed": 0
+  },
+  "tasks": {
+    "total": 48,
+    "completed": 0
+  },
+  "commits": []
+}

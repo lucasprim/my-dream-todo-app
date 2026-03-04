@@ -91,14 +91,14 @@ Build the main application layout and task management views.
 
 ### Tasks
 
-- [ ] Task 5.1: Create app layout — sidebar navigation (Inbox, Projects, Areas, Today, Calendar) + main content area
-- [ ] Task 5.2: Build task component — checkbox, title, due date, priority badge, edit/delete actions
-- [ ] Task 5.3: Build Inbox view — task list + quick-capture input at top
-- [ ] Task 5.4: Build Projects list view — cards/list of all projects with task counts
-- [ ] Task 5.5: Build Project detail view — project info + task list with add task
-- [ ] Task 5.6: Build Areas list view — cards/list of all areas with task counts
-- [ ] Task 5.7: Build Area detail view — area info + task list with add task
-- [ ] Task 5.8: Build task edit modal/drawer — edit title, due date, priority, notes
+- [x] Task 5.1: Create app layout — sidebar navigation (Inbox, Projects, Areas, Today, Calendar) + main content area
+- [x] Task 5.2: Build task component — checkbox, title, due date, priority badge, edit/delete actions
+- [x] Task 5.3: Build Inbox view — task list + quick-capture input at top
+- [x] Task 5.4: Build Projects list view — cards/list of all projects with task counts
+- [x] Task 5.5: Build Project detail view — project info + task list with add task
+- [x] Task 5.6: Build Areas list view — cards/list of all areas with task counts
+- [x] Task 5.7: Build Area detail view — area info + task list with add task
+- [x] Task 5.8: Build task edit modal/drawer — edit title, due date, priority, notes
 
 ### Verification
 

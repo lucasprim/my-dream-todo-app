@@ -1,5 +1,6 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -9,13 +10,14 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const appPassword = process.env.APP_PASSWORD;
-        if (!appPassword) {
+        const appPasswordHash = process.env.APP_PASSWORD;
+        if (!appPasswordHash) {
           throw new Error("APP_PASSWORD environment variable is not set");
         }
-        if (credentials?.password === appPassword) {
-          return { id: "1", name: "Owner" };
-        }
+        if (!credentials?.password) return null;
+
+        const valid = await bcrypt.compare(credentials.password, appPasswordHash);
+        if (valid) return { id: "1", name: "Owner" };
         return null;
       },
     }),

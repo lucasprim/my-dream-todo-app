@@ -72,13 +72,13 @@ Backend services for reading/writing vault files and exposing CRUD operations. T
 
 ### Tasks
 
-- [ ] Task 4.1: Implement vault service (read file, write file, list directory, create file, delete file)
-- [ ] Task 4.2: Write tests for task CRUD server actions
-- [ ] Task 4.3: Implement server actions: create task, update task, complete task, delete task
-- [ ] Task 4.4: Write tests for inbox quick-capture action
-- [ ] Task 4.5: Implement inbox quick-capture server action (append task to `Inbox/inbox.md`)
-- [ ] Task 4.6: Implement project and area listing queries (Drizzle)
-- [ ] Task 4.7: Implement task queries — by project, by area, by status, by due date
+- [x] Task 4.1: Implement vault service (read file, write file, list directory, create file, delete file)
+- [x] Task 4.2: Write tests for task CRUD server actions
+- [x] Task 4.3: Implement server actions: create task, update task, complete task, delete task
+- [x] Task 4.4: Write tests for inbox quick-capture action
+- [x] Task 4.5: Implement inbox quick-capture server action (append task to `Inbox/inbox.md`)
+- [x] Task 4.6: Implement project and area listing queries (Drizzle)
+- [x] Task 4.7: Implement task queries — by project, by area, by status, by due date
 
 ### Verification
 

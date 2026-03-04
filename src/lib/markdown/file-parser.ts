@@ -22,12 +22,14 @@ export function parseMarkdownFile(content: string, filePath: string): ParsedFile
   const lines = body.split("\n");
   const tasks: Task[] = [];
 
-  // gray-matter strips the frontmatter, so body starts at line 1 of the body.
-  // We need to determine the original line numbers. The frontmatter block
-  // occupies the top of the file: count lines in the frontmatter block.
-  const frontmatterLineCount = content.length - content.replace(/^---[\s\S]*?---\n?/, "").length;
-  const frontmatterLines = frontmatterLineCount > 0
-    ? content.split("\n").findIndex((l, i, arr) => i > 0 && l.startsWith("---")) + 2
+  // Compute the number of lines consumed by the frontmatter block so we can
+  // assign correct 1-based line numbers to tasks.
+  // gray-matter strips "---\n...\n---\n" and the body starts immediately after.
+  // Count lines in the stripped prefix to get the offset.
+  const stripped = content.replace(/^---[\s\S]*?---\n?/, "");
+  const prefixLength = content.length - stripped.length;
+  const frontmatterLines = prefixLength > 0
+    ? content.slice(0, prefixLength).split("\n").length - 1
     : 0;
 
   for (let i = 0; i < lines.length; i++) {

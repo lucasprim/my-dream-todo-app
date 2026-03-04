@@ -15,6 +15,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { SyncIndicator } from "./sync-indicator";
 
 const NAV_ITEMS = [
   { href: "/inbox", label: "Inbox", icon: Inbox },
@@ -64,6 +65,7 @@ export function Sidebar() {
           <span>My Tasks</span>
         </div>
         <NavLinks pathname={pathname} />
+        <SyncIndicator />
       </aside>
 
       {/* Mobile top bar */}

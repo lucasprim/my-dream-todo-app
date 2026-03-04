@@ -150,10 +150,10 @@ Detect vault changes from Obsidian Sync and keep the index up-to-date.
 
 ### Tasks
 
-- [ ] Task 8.1: Set up Chokidar file watcher on vault directory
-- [ ] Task 8.2: Wire file change events to incremental reindex
-- [ ] Task 8.3: Implement write conflict handling — last-write-wins with full reindex fallback
-- [ ] Task 8.4: Add UI indicator for sync status (watching / reindexing / error)
+- [x] Task 8.1: Set up Chokidar file watcher on vault directory
+- [x] Task 8.2: Wire file change events to incremental reindex
+- [x] Task 8.3: Implement write conflict handling — last-write-wins with full reindex fallback
+- [x] Task 8.4: Add UI indicator for sync status (watching / reindexing / error)
 
 ### Verification
 

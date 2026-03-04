@@ -29,7 +29,7 @@ services:
       - OBSIDIAN_VAULT=${OBSIDIAN_VAULT}
     volumes:
       - vault:/vault
-      - obsidian_sync_config:/root/.config/obsidian-headless
+      - obsidian_sync_config:/home/nextjs/.config/obsidian-headless
     restart: unless-stopped
 
 volumes:

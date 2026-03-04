@@ -167,10 +167,10 @@ Secure the app with NextAuth.js for solo-user access.
 
 ### Tasks
 
-- [ ] Task 9.1: Configure NextAuth.js with credentials provider
-- [ ] Task 9.2: Create login page
-- [ ] Task 9.3: Protect all routes with authentication middleware
-- [ ] Task 9.4: Add passkey/WebAuthn support as alternative login method
+- [x] Task 9.1: Configure NextAuth.js with credentials provider
+- [x] Task 9.2: Create login page
+- [x] Task 9.3: Protect all routes with authentication middleware
+- [x] Task 9.4: Add passkey/WebAuthn support as alternative login method
 
 ### Verification
 

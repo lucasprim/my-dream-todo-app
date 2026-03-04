@@ -14,6 +14,7 @@ import {
   Search,
   Menu,
   X,
+  Settings,
 } from "lucide-react";
 import { SyncIndicator } from "./sync-indicator";
 
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
   { href: "/areas", label: "Areas", icon: Layers },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/search", label: "Search", icon: Search },
+  { href: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
 function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {

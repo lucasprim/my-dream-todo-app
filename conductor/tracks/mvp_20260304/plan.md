@@ -32,15 +32,15 @@ Build the task-line parser and file parser — the heart of the system. TDD requ
 
 ### Tasks
 
-- [ ] Task 2.1: Define Zod schemas for Task, Project, and Area data models
-- [ ] Task 2.2: Write tests for task-line parser (Obsidian Tasks emoji format: 📅 due, ✅ done, ⏫🔼🔽 priority, 🔁 recurring, etc.)
-- [ ] Task 2.3: Implement task-line parser (parse a single `- [ ] task line` with emojis into a Task object)
-- [ ] Task 2.4: Write tests for task-line serializer
-- [ ] Task 2.5: Implement task-line serializer (Task object back to Obsidian-compatible task line)
-- [ ] Task 2.6: Write tests for file parser (frontmatter + body with multiple tasks)
-- [ ] Task 2.7: Implement file parser using gray-matter + task-line parser
-- [ ] Task 2.8: Write round-trip tests (parse → serialize → parse yields identical result)
-- [ ] Task 2.9: Implement file serializer (frontmatter + tasks back to `.md` content)
+- [x] Task 2.1: Define Zod schemas for Task, Project, and Area data models
+- [x] Task 2.2: Write tests for task-line parser (Obsidian Tasks emoji format: 📅 due, ✅ done, ⏫🔼🔽 priority, 🔁 recurring, etc.)
+- [x] Task 2.3: Implement task-line parser (parse a single `- [ ] task line` with emojis into a Task object)
+- [x] Task 2.4: Write tests for task-line serializer
+- [x] Task 2.5: Implement task-line serializer (Task object back to Obsidian-compatible task line)
+- [x] Task 2.6: Write tests for file parser (frontmatter + body with multiple tasks)
+- [x] Task 2.7: Implement file parser using gray-matter + task-line parser
+- [x] Task 2.8: Write round-trip tests (parse → serialize → parse yields identical result)
+- [x] Task 2.9: Implement file serializer (frontmatter + tasks back to `.md` content)
 
 ### Verification
 

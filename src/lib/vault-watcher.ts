@@ -13,15 +13,32 @@ export interface SyncEvent {
   timestamp: string;
 }
 
-// Global singleton event emitter for sync status
-export const syncEvents = new EventEmitter();
-syncEvents.setMaxListeners(50);
+// Store shared state on globalThis so it survives module reloads in Next.js dev mode.
+// Each module instance (instrumentation, API routes) will share the same objects.
+declare global {
+  // eslint-disable-next-line no-var
+  var __vaultSyncEvents: EventEmitter | undefined;
+  // eslint-disable-next-line no-var
+  var __vaultCurrentStatus: SyncStatus | undefined;
+  // eslint-disable-next-line no-var
+  var __vaultWatcher: FSWatcher | null | undefined;
+}
 
-let watcher: FSWatcher | null = null;
-let currentStatus: SyncStatus = "idle";
+if (!globalThis.__vaultSyncEvents) {
+  globalThis.__vaultSyncEvents = new EventEmitter();
+  globalThis.__vaultSyncEvents.setMaxListeners(50);
+}
+if (globalThis.__vaultCurrentStatus === undefined) {
+  globalThis.__vaultCurrentStatus = "idle";
+}
+if (globalThis.__vaultWatcher === undefined) {
+  globalThis.__vaultWatcher = null;
+}
+
+export const syncEvents: EventEmitter = globalThis.__vaultSyncEvents;
 
 function emitStatus(status: SyncStatus, filePath?: string, message?: string) {
-  currentStatus = status;
+  globalThis.__vaultCurrentStatus = status;
   const event: SyncEvent = {
     status,
     filePath,
@@ -32,11 +49,11 @@ function emitStatus(status: SyncStatus, filePath?: string, message?: string) {
 }
 
 export function getSyncStatus(): SyncStatus {
-  return currentStatus;
+  return globalThis.__vaultCurrentStatus ?? "idle";
 }
 
 export async function startVaultWatcher(vaultDir: string): Promise<void> {
-  if (watcher) return; // already started
+  if (globalThis.__vaultWatcher) return; // already started
 
   const db = getDb();
 
@@ -50,14 +67,20 @@ export async function startVaultWatcher(vaultDir: string): Promise<void> {
     return;
   }
 
-  watcher = chokidar.watch(`${vaultDir}/**/*.md`, {
+  globalThis.__vaultWatcher = chokidar.watch(vaultDir, {
     ignoreInitial: true,
     persistent: true,
     awaitWriteFinish: { stabilityThreshold: 300, pollInterval: 100 },
+    ignored: (filePath, stats) => {
+      // Skip .obsidian config dir and non-.md files
+      if (filePath.includes("/.obsidian")) return true;
+      return stats?.isFile() === true && !filePath.endsWith(".md");
+    },
   });
 
   const handleChange = async (fullPath: string) => {
     const relPath = fullPath.slice(vaultDir.length + 1).replace(/\\/g, "/");
+    console.log(`[vault-watcher] File changed: ${relPath}`);
     emitStatus("reindexing", relPath);
     try {
       await reindexFile(db, vaultDir, relPath);
@@ -73,7 +96,7 @@ export async function startVaultWatcher(vaultDir: string): Promise<void> {
     }
   };
 
-  watcher
+  globalThis.__vaultWatcher
     .on("add", handleChange)
     .on("change", handleChange)
     .on("unlink", async (fullPath) => {
@@ -94,9 +117,9 @@ export async function startVaultWatcher(vaultDir: string): Promise<void> {
 }
 
 export async function stopVaultWatcher(): Promise<void> {
-  if (watcher) {
-    await watcher.close();
-    watcher = null;
+  if (globalThis.__vaultWatcher) {
+    await globalThis.__vaultWatcher.close();
+    globalThis.__vaultWatcher = null;
     emitStatus("idle");
   }
 }

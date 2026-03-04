@@ -1,7 +1,17 @@
-export { default } from "next-auth/middleware";
+import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
+
+export async function proxy(req: NextRequest) {
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  if (!token) {
+    const loginUrl = new URL("/login", req.url);
+    loginUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+  return NextResponse.next();
+}
 
 export const config = {
-  // Protect all routes except login and NextAuth API routes
   matcher: [
     "/((?!login|api/auth|api/passkey|_next/static|_next/image|favicon.ico).*)",
   ],

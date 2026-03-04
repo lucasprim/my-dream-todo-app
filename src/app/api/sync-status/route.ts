@@ -3,11 +3,12 @@ import { syncEvents, getSyncStatus, type SyncEvent } from "@/lib/vault-watcher";
 export const dynamic = "force-dynamic";
 
 export function GET() {
+  const encoder = new TextEncoder();
+  let send: ((event: SyncEvent) => void) | null = null;
+
   const stream = new ReadableStream({
     start(controller) {
-      const encoder = new TextEncoder();
-
-      const send = (event: SyncEvent) => {
+      send = (event: SyncEvent) => {
         const data = `data: ${JSON.stringify(event)}\n\n`;
         try {
           controller.enqueue(encoder.encode(data));
@@ -23,10 +24,12 @@ export function GET() {
       });
 
       syncEvents.on("sync", send);
-
-      return () => {
+    },
+    cancel() {
+      if (send) {
         syncEvents.off("sync", send);
-      };
+        send = null;
+      }
     },
   });
 

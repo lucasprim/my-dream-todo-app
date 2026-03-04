@@ -21,5 +21,6 @@ export function getDb() {
 }
 
 export function getVaultDir(): string {
-  return process.env.VAULT_DIR ?? path.join(process.cwd(), "vault-sample");
+  const raw = process.env.VAULT_DIR ?? path.join(process.cwd(), "vault-sample");
+  return path.resolve(raw);
 }

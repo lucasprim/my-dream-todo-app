@@ -15,9 +15,15 @@ export default async function TodayPage() {
     createOrGetDailyNote(db, vaultDir, today),
   ]);
 
+  const formattedDate = new Date(today + "T12:00:00").toLocaleDateString(
+    "en-US",
+    { weekday: "long", year: "numeric", month: "long", day: "numeric" }
+  );
+
   return (
     <TodayClient
       today={today}
+      formattedDate={formattedDate}
       initialDueTasks={dueTasks}
       initialNoteContent={dailyNote.content}
     />

@@ -18,12 +18,14 @@ import { updateDailyNoteContentAction } from "@/app/actions/daily-note-actions";
 
 interface TodayClientProps {
   today: string;
+  formattedDate: string;
   initialDueTasks: DbTask[];
   initialNoteContent: string;
 }
 
 export function TodayClient({
   today,
+  formattedDate,
   initialDueTasks,
   initialNoteContent,
 }: TodayClientProps) {
@@ -62,11 +64,6 @@ export function TodayClient({
     await updateDailyNoteContentAction(today, noteContent);
     setNoteSaving(false);
   };
-
-  const formattedDate = new Date(today + "T12:00:00").toLocaleDateString(
-    undefined,
-    { weekday: "long", year: "numeric", month: "long", day: "numeric" }
-  );
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-8">

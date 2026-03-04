@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import type { SyncStatus, SyncEvent } from "@/lib/vault-watcher";
 
@@ -21,12 +22,19 @@ const STATUS_LABELS: Record<SyncStatus, string> = {
 export function SyncIndicator() {
   const [status, setStatus] = useState<SyncStatus>("idle");
   const [message, setMessage] = useState<string | undefined>();
+  const prevStatus = useRef<SyncStatus>("idle");
+  const router = useRouter();
 
   useEffect(() => {
     const es = new EventSource("/api/sync-status");
 
     es.onmessage = (e: MessageEvent<string>) => {
       const event = JSON.parse(e.data) as SyncEvent;
+      // When transitioning from reindexing → watching, data has changed — refresh UI
+      if (prevStatus.current === "reindexing" && event.status === "watching") {
+        router.refresh();
+      }
+      prevStatus.current = event.status;
       setStatus(event.status);
       setMessage(event.filePath ?? event.message);
     };
@@ -37,7 +45,7 @@ export function SyncIndicator() {
     };
 
     return () => es.close();
-  }, []);
+  }, [router]);
 
   return (
     <div

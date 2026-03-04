@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
-import { Sidebar } from "@/components/layout/sidebar";
+import { AppShell } from "@/components/layout/app-shell";
 import { SessionProvider } from "@/components/layout/session-provider";
+import { getDb } from "@/lib/db-server";
+import { listProjects, listAreas } from "@/db/queries";
+
+export const dynamic = "force-dynamic";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,21 +18,26 @@ export const metadata: Metadata = {
   description: "Obsidian-powered task management",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
+  let projects: Awaited<ReturnType<typeof listProjects>> = [];
+  let areas: Awaited<ReturnType<typeof listAreas>> = [];
+
+  try {
+    const db = getDb();
+    [projects, areas] = await Promise.all([listProjects(db), listAreas(db)]);
+  } catch {
+    // DB not yet ready (e.g. first boot) — sidebar renders with empty lists
+  }
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} antialiased`}>
         <SessionProvider>
-          <div className="flex flex-col md:flex-row h-screen overflow-hidden">
-            <Sidebar />
-            <main className="flex-1 overflow-y-auto bg-background">
-              {children}
-            </main>
-          </div>
+          <AppShell projects={projects} areas={areas}>
+            {children}
+          </AppShell>
         </SessionProvider>
       </body>
     </html>

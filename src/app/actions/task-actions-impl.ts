@@ -143,21 +143,22 @@ export async function completeTask(
   if (!dbTask) throw new Error(`Task not found: ${taskId}`);
 
   const currentTask = dbTaskToMarkdownTask(dbTask);
-  const completedTask: Task = {
+  const nowCompleting = !currentTask.completed;
+  const updatedTask: Task = {
     ...currentTask,
-    completed: true,
-    doneDate: new Date().toISOString().slice(0, 10),
+    completed: nowCompleting,
+    doneDate: nowCompleting ? new Date().toISOString().slice(0, 10) : undefined,
   };
 
   const lineNumber = dbTask.lineNumber;
   if (!lineNumber) throw new Error(`Task has no line number: ${taskId}`);
 
   const rawContent = readFile(vaultDir, dbTask.filePath);
-  const updates = new Map([[lineNumber, completedTask]]);
+  const updates = new Map([[lineNumber, updatedTask]]);
   let newContent = applyTaskUpdates(rawContent, updates);
 
-  // Generate next occurrence for recurring tasks
-  if (currentTask.recurrence) {
+  // Generate next occurrence for recurring tasks (only when completing)
+  if (nowCompleting && currentTask.recurrence) {
     const baseDate = currentTask.dueDate ?? new Date().toISOString().slice(0, 10);
     const nextDue = nextRecurrenceDate(currentTask.recurrence, baseDate);
     if (nextDue) {

@@ -63,7 +63,7 @@ export function TaskItem({ task, onComplete, onDelete, onUpdate }: TaskItemProps
         <Checkbox
           checked={isCompleted}
           onCheckedChange={handleComplete}
-          disabled={isCompleted || isPending}
+          disabled={isPending}
           className="mt-0.5"
         />
 

@@ -129,12 +129,12 @@ Search, filtering, drag-and-drop, tags, recurring tasks, and mobile responsivene
 
 ### Tasks
 
-- [ ] Task 7.1: Implement search — full-text search across task titles and notes
-- [ ] Task 7.2: Implement filtering — by status, priority, due date, tags
-- [ ] Task 7.3: Implement drag-and-drop task reordering (persist order in `.md` files)
-- [ ] Task 7.4: Build tags/labels UI — display tags, filter by tag, add/remove tags from tasks
-- [ ] Task 7.5: Implement recurring task logic — generate next occurrence on completion
-- [ ] Task 7.6: Make all views mobile-responsive with Tailwind breakpoints
+- [x] Task 7.1: Implement search — full-text search across task titles and notes
+- [x] Task 7.2: Implement filtering — by status, priority, due date, tags
+- [x] Task 7.3: Implement drag-and-drop task reordering (persist order in `.md` files)
+- [x] Task 7.4: Build tags/labels UI — display tags, filter by tag, add/remove tags from tasks
+- [x] Task 7.5: Implement recurring task logic — generate next occurrence on completion
+- [x] Task 7.6: Make all views mobile-responsive with Tailwind breakpoints
 
 ### Verification
 

@@ -85,6 +85,39 @@ export function removeTask(rawContent: string, lineNumber: number): string {
 }
 
 /**
+ * Reorder task lines within a file.
+ * orderedLineNumbers is the desired order of the task line numbers.
+ * Tasks are placed back at the positions they originally occupied,
+ * in the new order.
+ *
+ * @param rawContent - Original file content
+ * @param orderedLineNumbers - Task line numbers in desired order (1-based)
+ */
+export function reorderTaskLines(
+  rawContent: string,
+  orderedLineNumbers: number[]
+): string {
+  const lines = rawContent.split("\n");
+  const sorted = [...orderedLineNumbers].sort((a, b) => a - b);
+
+  // Extract content for each line in the old order (sorted positions)
+  const originalContents = sorted.map((ln) => lines[ln - 1] ?? "");
+
+  // Map desired order → position slot
+  // orderedLineNumbers[i] is the task that should go into slot i
+  // We place orderedLineNumbers[i]'s content at sorted[i]'s position
+  orderedLineNumbers.forEach((originalLn, newSlot) => {
+    const targetPosition = sorted[newSlot]! - 1;
+    const content = originalContents[
+      sorted.indexOf(originalLn)
+    ]!;
+    lines[targetPosition] = content;
+  });
+
+  return lines.join("\n");
+}
+
+/**
  * Stringify frontmatter + body back to markdown.
  * Useful when frontmatter values need to be updated (e.g. status).
  */

@@ -16,7 +16,7 @@ import {
   completeTask,
   deleteTask,
   quickCaptureToInbox,
-} from "../task-actions";
+} from "../task-actions-impl";
 
 const MIGRATIONS_DIR = path.join(process.cwd(), "drizzle");
 

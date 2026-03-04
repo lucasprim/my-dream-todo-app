@@ -1,0 +1,9 @@
+.git
+node_modules
+.next
+.env
+.env.local
+*.db
+*.db-wal
+*.db-shm
+.passkey.json

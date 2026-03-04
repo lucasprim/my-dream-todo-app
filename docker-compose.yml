@@ -1,0 +1,49 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - VAULT_DIR=/vault
+      - DB_PATH=/data/tasks.db
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - APP_PASSWORD=${APP_PASSWORD}
+      - PASSKEY_STORE_PATH=/data/.passkey.json
+    volumes:
+      - vault:/vault
+      - app_data:/data
+    restart: unless-stopped
+    depends_on:
+      obsidian-sync:
+        condition: service_started
+
+  obsidian-sync:
+    # Replace with your preferred Obsidian sync solution.
+    # Options:
+    #   - obsidian-headless: https://github.com/srid/emanote (for self-hosted sync)
+    #   - syncthing: https://syncthing.net (peer-to-peer file sync)
+    #   - rclone: for cloud storage sync (S3, Google Drive, etc.)
+    #
+    # Example using syncthing:
+    image: syncthing/syncthing:latest
+    ports:
+      - "8384:8384"   # Web UI
+      - "22000:22000" # Sync protocol
+    environment:
+      - PUID=1001
+      - PGID=1001
+    volumes:
+      - vault:/var/syncthing/vault
+      - syncthing_config:/var/syncthing/config
+    restart: unless-stopped
+
+volumes:
+  vault:
+    driver: local
+  app_data:
+    driver: local
+  syncthing_config:
+    driver: local

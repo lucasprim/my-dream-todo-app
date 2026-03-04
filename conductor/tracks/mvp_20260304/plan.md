@@ -184,11 +184,11 @@ Containerize the app with Obsidian Headless Sync.
 
 ### Tasks
 
-- [ ] Task 10.1: Create Dockerfile for the Next.js application
-- [ ] Task 10.2: Create Docker Compose config with Next.js + obsidian-headless services
-- [ ] Task 10.3: Configure shared volume for the vault between services
-- [ ] Task 10.4: Add environment variable configuration (.env.example, docs)
-- [ ] Task 10.5: Test full stack locally with Docker Compose
+- [x] Task 10.1: Create Dockerfile for the Next.js application
+- [x] Task 10.2: Create Docker Compose config with Next.js + obsidian-headless services
+- [x] Task 10.3: Configure shared volume for the vault between services
+- [x] Task 10.4: Add environment variable configuration (.env.example, docs)
+- [x] Task 10.5: Test full stack locally with Docker Compose
 
 ### Verification
 

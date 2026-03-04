@@ -21,23 +21,17 @@ services:
         condition: service_started
 
   obsidian-sync:
-    # Replace with your preferred Obsidian sync solution.
-    # Options:
-    #   - obsidian-headless: https://github.com/srid/emanote (for self-hosted sync)
-    #   - syncthing: https://syncthing.net (peer-to-peer file sync)
-    #   - rclone: for cloud storage sync (S3, Google Drive, etc.)
-    #
-    # Example using syncthing:
-    image: syncthing/syncthing:latest
-    ports:
-      - "8384:8384"   # Web UI
-      - "22000:22000" # Sync protocol
+    build:
+      context: ./obsidian-sync
+      dockerfile: Dockerfile
     environment:
-      - PUID=1001
-      - PGID=1001
+      - OBSIDIAN_EMAIL=${OBSIDIAN_EMAIL}
+      - OBSIDIAN_PASSWORD=${OBSIDIAN_PASSWORD}
+      - OBSIDIAN_MFA=${OBSIDIAN_MFA:-}
+      - OBSIDIAN_VAULT=${OBSIDIAN_VAULT}
     volumes:
-      - vault:/var/syncthing/vault
-      - syncthing_config:/var/syncthing/config
+      - vault:/vault
+      - obsidian_sync_config:/root/.config/obsidian-headless
     restart: unless-stopped
 
 volumes:
@@ -45,5 +39,5 @@ volumes:
     driver: local
   app_data:
     driver: local
-  syncthing_config:
+  obsidian_sync_config:
     driver: local

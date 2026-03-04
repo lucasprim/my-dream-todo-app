@@ -53,12 +53,12 @@ Set up SQLite schema and the vault indexer. TDD required.
 
 ### Tasks
 
-- [ ] Task 3.1: Define Drizzle ORM schema (tasks, projects, areas, tags, daily_notes tables)
-- [ ] Task 3.2: Generate and run initial migration with drizzle-kit
-- [ ] Task 3.3: Write tests for full vault scan indexer
-- [ ] Task 3.4: Implement full vault scan — walk vault directory, parse all `.md` files, populate SQLite
-- [ ] Task 3.5: Write tests for incremental reindex (single file change)
-- [ ] Task 3.6: Implement incremental reindex — reparse a single file and update SQLite
+- [x] Task 3.1: Define Drizzle ORM schema (tasks, projects, areas, tags, daily_notes tables)
+- [x] Task 3.2: Generate and run initial migration with drizzle-kit
+- [x] Task 3.3: Write tests for full vault scan indexer
+- [x] Task 3.4: Implement full vault scan — walk vault directory, parse all `.md` files, populate SQLite
+- [x] Task 3.5: Write tests for incremental reindex (single file change)
+- [x] Task 3.6: Implement incremental reindex — reparse a single file and update SQLite
 
 ### Verification
 

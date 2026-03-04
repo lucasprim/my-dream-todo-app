@@ -189,7 +189,44 @@ async function indexFile(
  */
 export async function fullVaultScan(db: Db, vaultDir: string): Promise<void> {
   const files = walkMarkdownFiles(vaultDir);
+  const fileSet = new Set(files);
   const now = new Date();
+
+  // Remove records whose source files no longer exist
+  const dbProjects = await db.select({ id: schema.projects.id, filePath: schema.projects.filePath }).from(schema.projects);
+  for (const p of dbProjects) {
+    if (!fileSet.has(p.filePath)) {
+      await db.delete(schema.tasks).where(eq(schema.tasks.projectId, p.id));
+      await db.delete(schema.projects).where(eq(schema.projects.id, p.id));
+    }
+  }
+
+  const dbAreas = await db.select({ id: schema.areas.id, filePath: schema.areas.filePath }).from(schema.areas);
+  for (const a of dbAreas) {
+    if (!fileSet.has(a.filePath)) {
+      await db.delete(schema.tasks).where(eq(schema.tasks.areaId, a.id));
+      await db.delete(schema.areas).where(eq(schema.areas.id, a.id));
+    }
+  }
+
+  const dbNotes = await db.select({ filePath: schema.dailyNotes.filePath }).from(schema.dailyNotes);
+  for (const n of dbNotes) {
+    if (!fileSet.has(n.filePath)) {
+      await db.delete(schema.dailyNotes).where(eq(schema.dailyNotes.filePath, n.filePath));
+    }
+  }
+
+  // Also clean up orphaned tasks (from inbox or other deleted files)
+  const dbTasks = await db.select({ filePath: schema.tasks.filePath }).from(schema.tasks);
+  const seenPaths = new Set<string>();
+  for (const t of dbTasks) {
+    if (!seenPaths.has(t.filePath) && !fileSet.has(t.filePath)) {
+      await db.delete(schema.tasks).where(eq(schema.tasks.filePath, t.filePath));
+      seenPaths.add(t.filePath);
+    }
+  }
+
+  // Re-index existing files
   for (const relPath of files) {
     await indexFile(db, vaultDir, relPath, now);
   }

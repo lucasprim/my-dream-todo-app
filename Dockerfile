@@ -47,7 +47,10 @@ COPY --from=builder /app/drizzle ./drizzle
 # Vault and SQLite database directories (mounted via Docker volume)
 RUN mkdir -p /vault /data && chown nextjs:nodejs /vault /data
 
-USER nextjs
+RUN apk add --no-cache su-exec
+
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
 EXPOSE 3000
 
@@ -58,4 +61,4 @@ ENV HOSTNAME="0.0.0.0"
 ENV VAULT_DIR=/vault
 ENV DB_PATH=/data/tasks.db
 
-CMD ["node", "server.js"]
+ENTRYPOINT ["/docker-entrypoint.sh"]

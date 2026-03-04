@@ -13,7 +13,12 @@ type Db = ReturnType<typeof drizzle<typeof schema>>;
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function slugFromPath(filePath: string): string {
-  return path.basename(filePath, ".md").toLowerCase().replace(/\s+/g, "-");
+  return path.basename(filePath, ".md")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function tagsToJson(tags: string[]): string {

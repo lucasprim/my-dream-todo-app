@@ -5,13 +5,13 @@
  */
 import fs from "fs";
 import path from "path";
-import type { AuthenticatorTransportFuture } from "@simplewebauthn/server/script/deps";
+type AuthenticatorTransport = "ble" | "cable" | "hybrid" | "internal" | "nfc" | "smart-card" | "usb";
 
 export interface StoredCredential {
   id: string;
   publicKey: string; // base64
   counter: number;
-  transports?: AuthenticatorTransportFuture[];
+  transports?: AuthenticatorTransport[];
 }
 
 function storePath(): string {

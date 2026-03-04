@@ -95,7 +95,7 @@ export type DailyNote = z.infer<typeof DailyNoteSchema>;
 
 export const ParsedFileSchema = z.object({
   filePath: z.string(),
-  frontmatter: z.record(z.unknown()).default({}),
+  frontmatter: z.record(z.string(), z.unknown()).default({}),
   title: z.string().optional(),
   tasks: z.array(TaskSchema).default([]),
   rawContent: z.string(),

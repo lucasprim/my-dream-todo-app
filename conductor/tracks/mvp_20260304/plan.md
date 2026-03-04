@@ -111,11 +111,11 @@ Interactive daily planning ritual with daily note creation.
 
 ### Tasks
 
-- [ ] Task 6.1: Define daily note `.md` format for `Calendar/` directory
-- [ ] Task 6.2: Implement daily note server actions (create, read, update daily note)
-- [ ] Task 6.3: Build daily planning UI — show overdue + due today tasks, let user curate today's list
-- [ ] Task 6.4: Build Today view — display curated daily task list with completion tracking
-- [ ] Task 6.5: Build Calendar view — month/week overview with daily note links
+- [x] Task 6.1: Define daily note `.md` format for `Calendar/` directory
+- [x] Task 6.2: Implement daily note server actions (create, read, update daily note)
+- [x] Task 6.3: Build daily planning UI — show overdue + due today tasks, let user curate today's list
+- [x] Task 6.4: Build Today view — display curated daily task list with completion tracking
+- [x] Task 6.5: Build Calendar view — month/week overview with daily note links
 
 ### Verification
 

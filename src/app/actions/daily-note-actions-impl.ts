@@ -1,0 +1,54 @@
+import path from "path";
+import fs from "fs";
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import { reindexFile } from "@/db/indexer";
+import { getDailyNoteByDate } from "@/db/queries";
+import * as schema from "@/db/schema";
+import type { DailyNote } from "@/db/schema";
+import { VAULT_DIRS } from "@/lib/vault-config";
+
+type Db = ReturnType<typeof drizzle<typeof schema>>;
+
+function dailyNoteRelPath(date: string): string {
+  return `${VAULT_DIRS.CALENDAR}/${date}.md`;
+}
+
+function dailyNoteTemplate(date: string): string {
+  return `---\ntype: daily-note\ndate: ${date}\n---\n\n# ${date}\n\n## Tasks\n\n## Notes\n\n`;
+}
+
+export async function createOrGetDailyNote(
+  db: Db,
+  vaultDir: string,
+  date: string
+): Promise<DailyNote> {
+  const existing = await getDailyNoteByDate(db, date);
+  if (existing) return existing;
+
+  const relPath = dailyNoteRelPath(date);
+  const fullPath = path.join(vaultDir, relPath);
+
+  if (!fs.existsSync(fullPath)) {
+    fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+    fs.writeFileSync(fullPath, dailyNoteTemplate(date), "utf8");
+  }
+
+  await reindexFile(db, vaultDir, relPath);
+
+  const note = await getDailyNoteByDate(db, date);
+  if (!note) throw new Error(`Failed to create daily note for ${date}`);
+  return note;
+}
+
+export async function updateDailyNoteContent(
+  db: Db,
+  vaultDir: string,
+  date: string,
+  content: string
+): Promise<void> {
+  const relPath = dailyNoteRelPath(date);
+  const fullPath = path.join(vaultDir, relPath);
+  fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+  fs.writeFileSync(fullPath, content, "utf8");
+  await reindexFile(db, vaultDir, relPath);
+}

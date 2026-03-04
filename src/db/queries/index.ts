@@ -1,7 +1,7 @@
-import { eq, and, isNull, isNotNull, lte, gte, like } from "drizzle-orm";
+import { eq, and, isNull, isNotNull, lte, gte, like, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as schema from "../schema";
-import type { DbTask, Project, Area } from "../schema";
+import type { DbTask, Project, Area, DailyNote } from "../schema";
 
 type Db = ReturnType<typeof drizzle<typeof schema>>;
 
@@ -111,4 +111,22 @@ export async function searchTasks(db: Db, query: string): Promise<DbTask[]> {
     .from(schema.tasks)
     .where(like(schema.tasks.title, `%${query}%`))
     .orderBy(schema.tasks.dueDate);
+}
+
+// ── Daily Notes ───────────────────────────────────────────────────────────────
+
+export async function getDailyNoteByDate(db: Db, date: string): Promise<DailyNote | undefined> {
+  const rows = await db
+    .select()
+    .from(schema.dailyNotes)
+    .where(eq(schema.dailyNotes.date, date))
+    .limit(1);
+  return rows[0];
+}
+
+export async function listDailyNotes(db: Db): Promise<DailyNote[]> {
+  return db
+    .select()
+    .from(schema.dailyNotes)
+    .orderBy(desc(schema.dailyNotes.date));
 }

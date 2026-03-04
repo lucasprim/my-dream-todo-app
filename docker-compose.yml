@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "${PORT:-3000}:3000"
+      - "${HOST_PORT:-3000}:3000"
     environment:
       - VAULT_DIR=/vault
       - DB_PATH=/data/tasks.db

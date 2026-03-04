@@ -21,9 +21,7 @@ services:
         condition: service_started
 
   obsidian-sync:
-    build:
-      context: ./obsidian-sync
-      dockerfile: Dockerfile
+    image: ghcr.io/lucasprim/my-own-todo-app/obsidian-sync:latest
     environment:
       - OBSIDIAN_EMAIL=${OBSIDIAN_EMAIL}
       - OBSIDIAN_PASSWORD=${OBSIDIAN_PASSWORD}

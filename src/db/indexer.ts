@@ -82,16 +82,18 @@ async function resolveOrCreatePerson(
   }
 
   // Create a vault file so the person shows up in Obsidian
-  const relPath = `${VAULT_DIRS.PEOPLE}/${name}.md`;
+  // Prefix with @ to match Obsidian convention for people notes
+  const displayName = `@${name}`;
+  const relPath = `${VAULT_DIRS.PEOPLE}/${displayName}.md`;
   const fullPath = path.join(vaultDir, relPath);
   if (!fs.existsSync(fullPath)) {
     fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-    fs.writeFileSync(fullPath, `# ${name}\n`, "utf8");
+    fs.writeFileSync(fullPath, `# ${displayName}\n`, "utf8");
   }
 
   const result = await db
     .insert(schema.people)
-    .values({ slug, name, filePath: relPath, updatedAt: toIso(now) })
+    .values({ slug, name: displayName, filePath: relPath, updatedAt: toIso(now) })
     .returning({ id: schema.people.id });
 
   return result[0]!.id;

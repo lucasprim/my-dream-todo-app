@@ -309,9 +309,9 @@ type: inbox
 
     await fullVaultScan(db, vaultDir);
     const allPeople = await db.select().from(schema.people);
-    const newPerson = allPeople.find((p) => p.name === "Dr. New Person");
+    const newPerson = allPeople.find((p) => p.name === "@Dr. New Person");
     expect(newPerson).toBeDefined();
-    expect(newPerson?.filePath).toBeNull();
+    expect(newPerson?.filePath).toBe("People/@Dr. New Person.md");
   });
 
   it("cleans up people from deleted People/ files on full scan", async () => {
@@ -324,7 +324,7 @@ type: inbox
     const allPeople = await db.select().from(schema.people);
     // Alice had a filePath, so she gets cleaned up. But she's still mentioned in tasks,
     // so she gets auto-created again (without filePath) during task indexing.
-    const alice = allPeople.find((p) => p.name === "Alice Smith");
-    expect(alice?.filePath).toBeNull();
+    const alice = allPeople.find((p) => p.name === "@Alice Smith");
+    expect(alice?.filePath).toBe("People/@Alice Smith.md");
   });
 });

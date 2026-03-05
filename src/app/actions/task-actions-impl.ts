@@ -47,6 +47,7 @@ function dbTaskToMarkdownTask(t: schema.DbTask): Task {
     lineNumber: t.lineNumber ?? undefined,
     taskId: t.taskId ?? undefined,
     dependsOn: [],
+    mentions: [],
   };
 }
 
@@ -72,6 +73,7 @@ export async function createTask(
     tags: input.tags ?? [],
     recurrence: input.recurrence,
     dependsOn: [],
+    mentions: [],
   };
 
   const rawContent = readFile(vaultDir, input.filePath);
@@ -264,6 +266,7 @@ export async function quickCaptureToInbox(
     dueDate: input.dueDate,
     tags: input.tags ?? [],
     dependsOn: [],
+    mentions: [],
   };
 
   const inboxPath = VAULT_FILES.INBOX;

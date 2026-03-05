@@ -70,11 +70,11 @@ Build the people directory and detail pages.
 
 ### Tasks
 
-- [ ] Task 4.1: Add "People" link to sidebar navigation
-- [ ] Task 4.2: Create `/people` page — server component fetching `listPeople()`, rendering a list of people with task counts
-- [ ] Task 4.3: Create `/people/[slug]` page — server component fetching person details and their tasks, grouped by project/area
-- [ ] Task 4.4: Create `PersonCard` component for the people list
-- [ ] Task 4.5: Reuse `TaskItem` component on person detail page to display linked tasks
+- [x] Task 4.1: Add "People" link to sidebar navigation
+- [x] Task 4.2: Create `/people` page — server component fetching `listPeople()`, rendering a list of people with task counts
+- [x] Task 4.3: Create `/people/[slug]` page — server component fetching person details and their tasks, grouped by project/area
+- [x] Task 4.4: Create `PersonCard` component for the people list (inline in /people page — separate component not needed)
+- [x] Task 4.5: Reuse `TaskItem` component on person detail page to display linked tasks
 
 ### Verification
 

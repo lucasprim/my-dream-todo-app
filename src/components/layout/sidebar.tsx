@@ -18,10 +18,12 @@ import {
   ChevronDown,
   ChevronRight,
   Plus,
+  Users,
 } from "lucide-react";
 import { SyncIndicator } from "./sync-indicator";
-import type { Project, Area } from "@/db/schema";
+import type { Project, Area, Person } from "@/db/schema";
 import { createProjectAction, createAreaAction } from "@/app/actions/project-area-actions";
+import { createPersonAction } from "@/app/actions/people-actions";
 
 const TOP_NAV = [
   { href: "/inbox", label: "Inbox", icon: Inbox },
@@ -204,10 +206,11 @@ interface SidebarContentProps {
   pathname: string;
   projects: Project[];
   areas: Area[];
+  people: { slug: string; title: string }[];
   onNavigate?: () => void;
 }
 
-function SidebarContent({ pathname, projects, areas, onNavigate }: SidebarContentProps) {
+function SidebarContent({ pathname, projects, areas, people, onNavigate }: SidebarContentProps) {
   const router = useRouter();
 
   return (
@@ -246,6 +249,20 @@ function SidebarContent({ pathname, projects, areas, onNavigate }: SidebarConten
         }}
       />
 
+      <CollapsibleSection
+        label="People"
+        icon={Users}
+        items={people}
+        basePath="/people"
+        pathname={pathname}
+        onNavigate={onNavigate}
+        createPlaceholder="Person name…"
+        onCreate={async (title) => {
+          const slug = await createPersonAction({ name: title });
+          router.push(`/people/${slug}`);
+        }}
+      />
+
       <div className="my-1" />
 
       {BOTTOM_NAV.map(({ href, label, icon }) => (
@@ -258,11 +275,14 @@ function SidebarContent({ pathname, projects, areas, onNavigate }: SidebarConten
 interface SidebarProps {
   projects: Project[];
   areas: Area[];
+  people: (Person & { taskCount: number })[];
 }
 
-export function Sidebar({ projects, areas }: SidebarProps) {
+export function Sidebar({ projects, areas, people }: SidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const peopleItems = people.map((p) => ({ slug: p.slug, title: p.name }));
 
   return (
     <>
@@ -272,7 +292,7 @@ export function Sidebar({ projects, areas }: SidebarProps) {
           <CheckSquare className="h-5 w-5" />
           <span>My Tasks</span>
         </div>
-        <SidebarContent pathname={pathname} projects={projects} areas={areas} />
+        <SidebarContent pathname={pathname} projects={projects} areas={areas} people={peopleItems} />
         <SyncIndicator />
       </aside>
 
@@ -313,6 +333,7 @@ export function Sidebar({ projects, areas }: SidebarProps) {
               pathname={pathname}
               projects={projects}
               areas={areas}
+              people={peopleItems}
               onNavigate={() => setMobileOpen(false)}
             />
             <SyncIndicator />

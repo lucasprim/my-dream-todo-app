@@ -98,7 +98,7 @@ describe("daily-planning queries and actions", () => {
       expect(tasks[0]!.title).toBe("Project task B");
     });
 
-    it("excludes completed tasks", async () => {
+    it("includes completed tasks (for progress tracking)", async () => {
       // Complete the scheduled task in DB directly
       const [task] = await db
         .select()
@@ -110,7 +110,8 @@ describe("daily-planning queries and actions", () => {
         .where(eq(schema.tasks.id, task!.id));
 
       const tasks = await getTasksScheduledForDate(db, "2026-03-05");
-      expect(tasks).toHaveLength(0);
+      expect(tasks).toHaveLength(1);
+      expect(tasks[0]!.completed).toBe(1);
     });
 
     it("returns empty array when no tasks scheduled", async () => {

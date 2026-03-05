@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import path from "path";
 import fs from "fs";
@@ -305,7 +305,7 @@ export async function quickCaptureToInbox(
   db: Db,
   vaultDir: string,
   input: { title: string; dueDate?: string; priority?: Priority; tags?: string[]; recurrence?: string }
-): Promise<void> {
+): Promise<number> {
   const task: Task = {
     title: input.title,
     completed: false,
@@ -331,4 +331,13 @@ export async function quickCaptureToInbox(
   const updated = appendTask(rawContent, task);
   writeFile(vaultDir, inboxPath, updated);
   await reindexFile(db, vaultDir, inboxPath);
+
+  // Return the newly created task's DB id (highest line number in the inbox file)
+  const [newTask] = await db
+    .select({ id: schema.tasks.id })
+    .from(schema.tasks)
+    .where(eq(schema.tasks.filePath, inboxPath))
+    .orderBy(desc(schema.tasks.lineNumber))
+    .limit(1);
+  return newTask!.id;
 }

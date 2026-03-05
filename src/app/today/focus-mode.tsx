@@ -8,11 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { ListRestart, PartyPopper, Plus, Zap } from "lucide-react";
-import type { DbTask } from "@/db/schema";
+import type { ScheduledTask } from "@/db/queries";
 import { scheduleTaskForDateAction } from "@/app/actions/task-actions";
 
 interface FocusModeProps {
-  tasks: DbTask[];
+  tasks: ScheduledTask[];
   onComplete: (id: number) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
   onUpdate: (id: number, patch: { title?: string; dueDate?: string | null; recurrence?: string | null }) => Promise<void>;
@@ -100,6 +100,7 @@ export function FocusMode({
               <TaskItem
                 key={task.id}
                 task={task}
+                sourceLabel={task.projectTitle ?? task.areaTitle ?? (task.source === "inbox" ? "Inbox" : undefined)}
                 onComplete={onComplete}
                 onDelete={onDelete}
                 onUpdate={onUpdate}

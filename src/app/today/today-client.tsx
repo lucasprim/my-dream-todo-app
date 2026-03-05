@@ -7,7 +7,7 @@ import { QuickCapture } from "@/components/tasks/quick-capture";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import type { DbTask } from "@/db/schema";
-import type { AvailableTask } from "@/db/queries";
+import type { AvailableTask, ScheduledTask } from "@/db/queries";
 import {
   completeTaskAction,
   deleteTaskAction,
@@ -27,7 +27,7 @@ interface TodayClientProps {
   today: string;
   formattedDate: string;
   planned: boolean;
-  scheduledTasks: DbTask[];
+  scheduledTasks: ScheduledTask[];
   carryForwardTasks: DbTask[];
   availableTasks: AvailableTask[];
 }
@@ -73,7 +73,8 @@ export function TodayClient({
 
   const handleQuickCapture = async (input: { title: string; dueDate?: string; recurrence?: string }) => {
     // Quick capture to inbox, then schedule for today
-    await quickCaptureToInboxAction(input);
+    const taskId = await quickCaptureToInboxAction(input);
+    await scheduleTaskForDateAction(taskId, today);
     router.refresh();
   };
 

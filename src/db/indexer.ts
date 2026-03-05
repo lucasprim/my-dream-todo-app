@@ -234,9 +234,11 @@ async function indexFile(
   }
 
   // Delete existing tasks for this file and re-insert
+  // Skip task indexing for daily notes — their task lines are display copies
+  // synced from real task files; indexing them creates orphaned duplicates.
   await db.delete(schema.tasks).where(eq(schema.tasks.filePath, relPath));
 
-  if (parsed.tasks.length > 0) {
+  if (kind !== "daily-note" && parsed.tasks.length > 0) {
     const newTasks: NewDbTask[] = parsed.tasks.map((t) => ({
       taskId: t.taskId,
       title: t.title,

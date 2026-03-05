@@ -80,8 +80,8 @@ export async function quickCaptureToInboxAction(input: {
   priority?: Priority;
   tags?: string[];
   recurrence?: string;
-}): Promise<void> {
+}): Promise<number> {
   const db = getDb();
   const vaultDir = getVaultDir();
-  await _quickCaptureToInbox(db, vaultDir, input);
+  return _quickCaptureToInbox(db, vaultDir, input);
 }

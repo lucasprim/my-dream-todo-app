@@ -523,7 +523,7 @@ function AvailableTaskRow({
       <Button
         variant="ghost"
         size="icon"
-        className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+        className="h-6 w-6 shrink-0 invisible group-hover:visible"
         onClick={onSchedule}
         disabled={disabled}
         title="Add to today's plan"

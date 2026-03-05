@@ -4,7 +4,7 @@ import "./globals.css";
 import { AppShell } from "@/components/layout/app-shell";
 import { SessionProvider } from "@/components/layout/session-provider";
 import { getDb } from "@/lib/db-server";
-import { listProjects, listAreas, listPeople } from "@/db/queries";
+import { listProjects, listAreas } from "@/db/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -23,15 +23,10 @@ export default async function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   let projects: Awaited<ReturnType<typeof listProjects>> = [];
   let areas: Awaited<ReturnType<typeof listAreas>> = [];
-  let people: Awaited<ReturnType<typeof listPeople>> = [];
 
   try {
     const db = getDb();
-    [projects, areas, people] = await Promise.all([
-      listProjects(db),
-      listAreas(db),
-      listPeople(db),
-    ]);
+    [projects, areas] = await Promise.all([listProjects(db), listAreas(db)]);
   } catch {
     // DB not yet ready (e.g. first boot) — sidebar renders with empty lists
   }
@@ -40,7 +35,7 @@ export default async function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} antialiased`}>
         <SessionProvider>
-          <AppShell projects={projects} areas={areas} people={people}>
+          <AppShell projects={projects} areas={areas}>
             {children}
           </AppShell>
         </SessionProvider>

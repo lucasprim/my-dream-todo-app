@@ -39,6 +39,7 @@ export function MentionInput({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [mentionStart, setMentionStart] = useState<number | null>(null);
+  const [mentionQuery, setMentionQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -76,9 +77,10 @@ export function MentionInput({
       }
 
       const query = textBefore.slice(atIndex + 1);
-      // Only trigger if there's no space right after @ and query is reasonable
+      // Only trigger if query is reasonable
       if (query.length >= 0 && !query.includes("\n")) {
         setMentionStart(atIndex);
+        setMentionQuery(query);
         if (debounceRef.current) clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(() => searchMentions(query), 150);
         return;
@@ -92,9 +94,10 @@ export function MentionInput({
   const insertMention = (person: Person) => {
     if (mentionStart === null) return;
 
+    // Replace "@query" (from mentionStart to mentionStart + 1 + query length) with [[@Name]]
     const before = value.slice(0, mentionStart);
-    const cursorPos = inputRef.current?.selectionStart ?? value.length;
-    const after = value.slice(cursorPos);
+    const afterIndex = mentionStart + 1 + mentionQuery.length;
+    const after = value.slice(afterIndex);
 
     const mention = `[[@${person.name}]]`;
     const newValue = before + mention + (after.startsWith(" ") ? after : " " + after);
@@ -102,6 +105,7 @@ export function MentionInput({
     onChange(newValue);
     setShowSuggestions(false);
     setMentionStart(null);
+    setMentionQuery("");
     setSuggestions([]);
 
     // Restore focus

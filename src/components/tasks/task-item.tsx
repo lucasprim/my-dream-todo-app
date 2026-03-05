@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,49 @@ import { Trash2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DbTask } from "@/db/schema";
 import { TaskEditModal } from "./task-edit-modal";
+
+const MENTION_RE = /\[\[@([^\]]+)\]\]/g;
+
+function nameToSlug(name: string): string {
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function renderTitleWithMentions(title: string): React.ReactNode {
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  const regex = new RegExp(MENTION_RE.source, "g");
+
+  while ((match = regex.exec(title)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(title.slice(lastIndex, match.index));
+    }
+    const personName = match[1]!;
+    const slug = nameToSlug(personName);
+    parts.push(
+      <Link
+        key={match.index}
+        href={`/people/${slug}`}
+        className="text-primary underline underline-offset-2 hover:text-primary/80"
+        onClick={(e) => e.stopPropagation()}
+      >
+        @{personName}
+      </Link>
+    );
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < title.length) {
+    parts.push(title.slice(lastIndex));
+  }
+
+  return parts.length > 0 ? parts : title;
+}
 
 interface TaskItemProps {
   task: DbTask;
@@ -77,7 +121,7 @@ export function TaskItem({ task, onComplete, onDelete, onUpdate }: TaskItemProps
             {task.priority !== "normal" && (
               <span className="mr-1">{PRIORITY_LABELS[task.priority]}</span>
             )}
-            {task.title}
+            {renderTitleWithMentions(task.title)}
           </p>
 
           {/* Metadata row */}

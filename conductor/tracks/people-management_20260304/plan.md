@@ -53,11 +53,11 @@ Add query functions and server actions for people data.
 
 ### Tasks
 
-- [ ] Task 3.1: Add query `listPeople(db)` — all people ordered by name, with task count
-- [ ] Task 3.2: Add query `getPersonBySlug(db, slug)` — single person with details
-- [ ] Task 3.3: Add query `getTasksByPerson(db, personId)` — tasks mentioning a person, with project/area info
-- [ ] Task 3.4: Add query `searchPeople(db, query)` — search people by name (for autocomplete)
-- [ ] Task 3.5: Create server action `searchPeopleAction(query)` for client-side autocomplete
+- [x] Task 3.1: Add query `listPeople(db)` — all people ordered by name, with task count
+- [x] Task 3.2: Add query `getPersonBySlug(db, slug)` — single person with details
+- [x] Task 3.3: Add query `getTasksByPerson(db, personId)` — tasks mentioning a person, with project/area info
+- [x] Task 3.4: Add query `searchPeople(db, query)` — search people by name (for autocomplete)
+- [x] Task 3.5: Create server action `searchPeopleAction(query)` for client-side autocomplete
 
 ### Verification
 

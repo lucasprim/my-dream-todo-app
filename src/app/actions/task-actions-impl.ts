@@ -265,6 +265,25 @@ export async function reorderTasks(
   await reindexFile(db, vaultDir, filePath);
 }
 
+// ── Schedule / Unschedule Task ────────────────────────────────────────────────
+
+export async function scheduleTaskForDate(
+  db: Db,
+  vaultDir: string,
+  taskId: number,
+  date: string
+): Promise<void> {
+  await updateTask(db, vaultDir, taskId, { scheduledDate: date });
+}
+
+export async function unscheduleTask(
+  db: Db,
+  vaultDir: string,
+  taskId: number
+): Promise<void> {
+  await updateTask(db, vaultDir, taskId, { scheduledDate: null });
+}
+
 // ── Quick Capture to Inbox ────────────────────────────────────────────────────
 
 export async function quickCaptureToInbox(

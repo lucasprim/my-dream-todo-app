@@ -7,4 +7,6 @@
 
 | [x] | task-recurrence_20260305 | Task Recurrence Patterns | 2026-03-05 | 2026-03-05 |
 
+| [~] | today_20260305 | Today — Daily Planning | 2026-03-05 | 2026-03-05 |
+
 <!-- Tracks registered by /conductor:new-track -->

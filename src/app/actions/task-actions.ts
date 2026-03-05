@@ -9,6 +9,8 @@ import {
   deleteTask as _deleteTask,
   quickCaptureToInbox as _quickCaptureToInbox,
   reorderTasks as _reorderTasks,
+  scheduleTaskForDate as _scheduleTaskForDate,
+  unscheduleTask as _unscheduleTask,
 } from "./task-actions-impl";
 
 export async function createTaskAction(input: {
@@ -55,6 +57,21 @@ export async function reorderTasksAction(orderedTaskIds: number[]): Promise<void
   const db = getDb();
   const vaultDir = getVaultDir();
   await _reorderTasks(db, vaultDir, orderedTaskIds);
+}
+
+export async function scheduleTaskForDateAction(
+  taskId: number,
+  date: string
+): Promise<void> {
+  const db = getDb();
+  const vaultDir = getVaultDir();
+  await _scheduleTaskForDate(db, vaultDir, taskId, date);
+}
+
+export async function unscheduleTaskAction(taskId: number): Promise<void> {
+  const db = getDb();
+  const vaultDir = getVaultDir();
+  await _unscheduleTask(db, vaultDir, taskId);
 }
 
 export async function quickCaptureToInboxAction(input: {

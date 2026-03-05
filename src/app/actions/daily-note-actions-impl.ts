@@ -1,5 +1,6 @@
 import path from "path";
 import fs from "fs";
+import matter from "gray-matter";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { reindexFile } from "@/db/indexer";
 import { getDailyNoteByDate } from "@/db/queries";
@@ -14,7 +15,17 @@ function dailyNoteRelPath(date: string): string {
 }
 
 function dailyNoteTemplate(date: string): string {
-  return `---\ntype: daily-note\ndate: ${date}\n---\n\n# ${date}\n\n## Tasks\n\n## Notes\n\n`;
+  return `---\ntype: daily-note\ndate: ${date}\nplanned: false\n---\n\n# ${date}\n\n## Tasks\n\n## Notes\n\n`;
+}
+
+function setFrontmatterField(
+  fileContent: string,
+  field: string,
+  value: unknown
+): string {
+  const parsed = matter(fileContent);
+  parsed.data[field] = value;
+  return matter.stringify(parsed.content, parsed.data);
 }
 
 export async function createOrGetDailyNote(
@@ -51,4 +62,37 @@ export async function updateDailyNoteContent(
   fs.mkdirSync(path.dirname(fullPath), { recursive: true });
   fs.writeFileSync(fullPath, content, "utf8");
   await reindexFile(db, vaultDir, relPath);
+}
+
+export async function finishPlanning(
+  db: Db,
+  vaultDir: string,
+  date: string
+): Promise<void> {
+  await createOrGetDailyNote(db, vaultDir, date);
+  const relPath = dailyNoteRelPath(date);
+  const fullPath = path.join(vaultDir, relPath);
+  const content = fs.readFileSync(fullPath, "utf8");
+  const updated = setFrontmatterField(content, "planned", true);
+  fs.writeFileSync(fullPath, updated, "utf8");
+  await reindexFile(db, vaultDir, relPath);
+}
+
+export async function reopenPlanning(
+  db: Db,
+  vaultDir: string,
+  date: string
+): Promise<void> {
+  await createOrGetDailyNote(db, vaultDir, date);
+  const relPath = dailyNoteRelPath(date);
+  const fullPath = path.join(vaultDir, relPath);
+  const content = fs.readFileSync(fullPath, "utf8");
+  const updated = setFrontmatterField(content, "planned", false);
+  fs.writeFileSync(fullPath, updated, "utf8");
+  await reindexFile(db, vaultDir, relPath);
+}
+
+export function isPlanningComplete(dailyNoteContent: string): boolean {
+  const parsed = matter(dailyNoteContent);
+  return parsed.data.planned === true;
 }

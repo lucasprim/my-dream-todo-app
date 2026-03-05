@@ -35,12 +35,12 @@ Build the clean, minimal execution view that the user lives in after planning. T
 
 ### Tasks
 
-- [ ] Task 2.1: Redesign `TodayClient` with mode awareness — render Focus Mode when `planned: true` for today
-- [ ] Task 2.2: Build Focus Mode UI — single clean task list showing today's planned tasks in order, with completion checkboxes and progress indicator (e.g., "3 of 7 done")
-- [ ] Task 2.3: Add inline task completion with optimistic UI (reuse existing `TaskItem`)
-- [ ] Task 2.4: Add "Re-plan" button that switches back to Planning Mode (calls `reopenPlanningAction`)
-- [ ] Task 2.5: Show congratulatory empty state when all tasks are completed
-- [ ] Task 2.6: Quick capture in Focus Mode — add an urgent task directly to today's plan without leaving Focus Mode
+- [x] Task 2.1: Redesign `TodayClient` with mode awareness — render Focus Mode when `planned: true` for today
+- [x] Task 2.2: Build Focus Mode UI — single clean task list showing today's planned tasks in order, with completion checkboxes and progress indicator (e.g., "3 of 7 done")
+- [x] Task 2.3: Add inline task completion with optimistic UI (reuse existing `TaskItem`)
+- [x] Task 2.4: Add "Re-plan" button that switches back to Planning Mode (calls `reopenPlanningAction`)
+- [x] Task 2.5: Show congratulatory empty state when all tasks are completed
+- [x] Task 2.6: Quick capture in Focus Mode — add an urgent task directly to today's plan without leaving Focus Mode
 
 ### Verification
 
@@ -55,14 +55,14 @@ Build the full planning experience: carry-forward, task picker, reordering, and 
 
 ### Tasks
 
-- [ ] Task 3.1: Build Planning Mode layout — split view with "Today's Plan" (left/top) and "Available Tasks" browser (right/bottom)
-- [ ] Task 3.2: Build carry-forward banner at top of Planning Mode — show unfinished tasks from previous days with "Add all to today" and per-task "Add" / "Dismiss" actions
-- [ ] Task 3.3: Build task browser with sections: Inbox, Projects (collapsible per project), Areas (collapsible per area) — fetch via `getAvailableTasksForPlanning`
-- [ ] Task 3.4: Add search/filter within the task browser (client-side filter by title)
-- [ ] Task 3.5: "Add to plan" action per task — calls `scheduleTaskForDateAction`, task moves from browser to plan
-- [ ] Task 3.6: "Remove from plan" action — calls `unscheduleTaskAction`, task moves back to browser
-- [ ] Task 3.7: Drag-and-drop reordering within "Today's Plan" (reuse `SortableTaskList` + `reorderTasksAction`)
-- [ ] Task 3.8: "Done planning" button — calls `finishPlanningAction`, transitions to Focus Mode
+- [x] Task 3.1: Build Planning Mode layout — split view with "Today's Plan" (left/top) and "Available Tasks" browser (right/bottom)
+- [x] Task 3.2: Build carry-forward banner at top of Planning Mode — show unfinished tasks from previous days with "Add all to today" and per-task "Add" / "Dismiss" actions
+- [x] Task 3.3: Build task browser with sections: Inbox, Projects (collapsible per project), Areas (collapsible per area) — fetch via `getAvailableTasksForPlanning`
+- [x] Task 3.4: Add search/filter within the task browser (client-side filter by title)
+- [x] Task 3.5: "Add to plan" action per task — calls `scheduleTaskForDateAction`, task moves from browser to plan
+- [x] Task 3.6: "Remove from plan" action — calls `unscheduleTaskAction`, task moves back to browser
+- [x] Task 3.7: Drag-and-drop reordering within "Today's Plan" (reuse `SortableTaskList` + `reorderTasksAction`)
+- [x] Task 3.8: "Done planning" button — calls `finishPlanningAction`, transitions to Focus Mode
 
 ### Verification
 

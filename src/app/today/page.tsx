@@ -1,6 +1,10 @@
 import { getDb, getVaultDir } from "@/lib/db-server";
-import { getTasksDueToday } from "@/db/queries";
-import { createOrGetDailyNote } from "@/app/actions/daily-note-actions-impl";
+import {
+  getTasksScheduledForDate,
+  getCarryForwardTasks,
+  getAvailableTasksForPlanning,
+} from "@/db/queries";
+import { createOrGetDailyNote, isPlanningComplete } from "@/app/actions/daily-note-actions-impl";
 import { TodayClient } from "./today-client";
 
 export const dynamic = "force-dynamic";
@@ -10,9 +14,13 @@ export default async function TodayPage() {
   const db = getDb();
   const vaultDir = getVaultDir();
 
-  const [dueTasks, dailyNote] = await Promise.all([
-    getTasksDueToday(db, today),
-    createOrGetDailyNote(db, vaultDir, today),
+  const dailyNote = await createOrGetDailyNote(db, vaultDir, today);
+  const planned = isPlanningComplete(dailyNote.content);
+
+  const [scheduledTasks, carryForwardTasks, availableTasks] = await Promise.all([
+    getTasksScheduledForDate(db, today),
+    getCarryForwardTasks(db, today),
+    getAvailableTasksForPlanning(db, today),
   ]);
 
   const formattedDate = new Date(today + "T12:00:00").toLocaleDateString(
@@ -24,8 +32,10 @@ export default async function TodayPage() {
     <TodayClient
       today={today}
       formattedDate={formattedDate}
-      initialDueTasks={dueTasks}
-      initialNoteContent={dailyNote.content}
+      planned={planned}
+      scheduledTasks={scheduledTasks}
+      carryForwardTasks={carryForwardTasks}
+      availableTasks={availableTasks}
     />
   );
 }

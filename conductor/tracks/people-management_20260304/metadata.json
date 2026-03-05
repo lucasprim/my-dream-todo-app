@@ -1,0 +1,25 @@
+{
+  "id": "people-management_20260304",
+  "title": "People Management",
+  "type": "feature",
+  "status": "complete",
+  "created": "2026-03-04T00:00:00.000Z",
+  "updated": "2026-03-04T00:00:00.000Z",
+  "current_phase": 5,
+  "current_task": "5.4",
+  "phases": {
+    "total": 5,
+    "completed": 5
+  },
+  "tasks": {
+    "total": 22,
+    "completed": 22
+  },
+  "commits": [
+    "c6bf142: feat: add people mentions parsing and schema",
+    "a5f789d: feat: index people from vault and link task mentions",
+    "bcb6eb4: feat: add people queries and search action",
+    "2330bc8: feat: add people UI pages and sidebar navigation",
+    "818b04d: feat: add @ mention autocomplete for task inputs"
+  ]
+}

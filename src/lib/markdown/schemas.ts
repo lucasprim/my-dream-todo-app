@@ -46,6 +46,8 @@ export const TaskSchema = z.object({
   taskId: z.string().optional(),
   /** Dependency IDs from ⛔ emoji */
   dependsOn: z.array(z.string()).default([]),
+  /** People mentions from [[@Person Name]] references */
+  mentions: z.array(z.string()).default([]),
 });
 export type Task = z.infer<typeof TaskSchema>;
 

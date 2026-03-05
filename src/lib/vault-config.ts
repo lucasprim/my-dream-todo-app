@@ -17,6 +17,7 @@ export function getVaultDirs() {
     PROJECTS: dir("VAULT_DIR_PROJECTS", "Projects"),
     AREAS:    dir("VAULT_DIR_AREAS",    "Areas"),
     CALENDAR: dir("VAULT_DIR_CALENDAR", "Calendar"),
+    PEOPLE:   dir("VAULT_DIR_PEOPLE",   "People"),
   };
 }
 

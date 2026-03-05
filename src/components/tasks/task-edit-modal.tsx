@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MentionInput } from "@/components/tasks/mention-input";
 import type { DbTask } from "@/db/schema";
 
 interface TaskEditModalProps {
@@ -46,10 +47,10 @@ export function TaskEditModal({ task, onClose, onSave }: TaskEditModalProps) {
         <div className="space-y-4 py-2">
           <div className="space-y-1.5">
             <Label htmlFor="title">Title</Label>
-            <Input
+            <MentionInput
               id="title"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={setTitle}
               autoFocus
             />
           </div>

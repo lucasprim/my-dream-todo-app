@@ -9,6 +9,7 @@ function task(overrides: Partial<Task>): Task {
     priority: "normal",
     tags: [],
     dependsOn: [],
+    mentions: [],
     ...overrides,
   };
 }

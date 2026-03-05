@@ -18,6 +18,7 @@ import {
   ChevronDown,
   ChevronRight,
   Plus,
+  Users,
 } from "lucide-react";
 import { SyncIndicator } from "./sync-indicator";
 import type { Project, Area } from "@/db/schema";
@@ -245,6 +246,8 @@ function SidebarContent({ pathname, projects, areas, onNavigate }: SidebarConten
           router.push(`/areas/${slug}`);
         }}
       />
+
+      <NavLink href="/people" label="People" icon={Users} pathname={pathname} onNavigate={onNavigate} />
 
       <div className="my-1" />
 

@@ -194,6 +194,42 @@ describe("parseTaskLine", () => {
     });
   });
 
+  describe("mention parsing ([[@Person Name]])", () => {
+    it("parses a single mention", () => {
+      const result = parseTaskLine("- [ ] Follow up with [[@Roberto Almeida]]");
+      expect(result?.mentions).toEqual(["Roberto Almeida"]);
+      expect(result?.title).toContain("[[@Roberto Almeida]]");
+    });
+
+    it("parses multiple mentions", () => {
+      const result = parseTaskLine(
+        "- [ ] Meeting with [[@Alice Smith]] and [[@Bob Jones]]"
+      );
+      expect(result?.mentions).toEqual(["Alice Smith", "Bob Jones"]);
+    });
+
+    it("returns empty mentions array when none present", () => {
+      const result = parseTaskLine("- [ ] Buy groceries");
+      expect(result?.mentions).toEqual([]);
+    });
+
+    it("preserves mentions in title (inline content)", () => {
+      const result = parseTaskLine("- [ ] Call [[@Dr. Maria Silva]] about results");
+      expect(result?.title).toContain("[[@Dr. Maria Silva]]");
+      expect(result?.mentions).toEqual(["Dr. Maria Silva"]);
+    });
+
+    it("parses mentions alongside other emoji fields", () => {
+      const result = parseTaskLine(
+        "- [ ] Review with [[@Roberto Almeida]] 📅 2026-03-10 ⏫ #work"
+      );
+      expect(result?.mentions).toEqual(["Roberto Almeida"]);
+      expect(result?.dueDate).toBe("2026-03-10");
+      expect(result?.priority).toBe("high");
+      expect(result?.tags).toContain("work");
+    });
+  });
+
   describe("edge cases", () => {
     it("handles a task with only whitespace title after emoji stripping... actually has real title", () => {
       const result = parseTaskLine("- [ ] Real title 📅 2026-01-01");

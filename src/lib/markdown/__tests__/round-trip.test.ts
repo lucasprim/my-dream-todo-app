@@ -87,6 +87,21 @@ describe("round-trip: parse → serialize → parse", () => {
     expect(result?.tags).toContain("work");
   });
 
+  it("preserves mentions", () => {
+    const result = roundTrip("- [ ] Follow up with [[@Roberto Almeida]]");
+    expect(result?.mentions).toEqual(["Roberto Almeida"]);
+    expect(result?.title).toContain("[[@Roberto Almeida]]");
+  });
+
+  it("preserves multiple mentions with other fields", () => {
+    const line =
+      "- [ ] Meeting with [[@Alice]] and [[@Bob]] 📅 2026-03-10 #work";
+    const result = roundTrip(line);
+    expect(result?.mentions).toEqual(["Alice", "Bob"]);
+    expect(result?.dueDate).toBe("2026-03-10");
+    expect(result?.tags).toContain("work");
+  });
+
   it("round-trips all sample vault task lines", () => {
     const sampleLines = [
       "- [ ] Review meeting notes from last week",

@@ -22,7 +22,7 @@ function nameToSlug(name: string): string {
     .replace(/^-|-$/g, "");
 }
 
-function renderTitleWithMentions(title: string): React.ReactNode {
+export function renderTitleWithMentions(title: string): React.ReactNode {
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;

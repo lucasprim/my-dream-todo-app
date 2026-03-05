@@ -19,7 +19,7 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { TaskItem } from "@/components/tasks/task-item";
+import { TaskItem, renderTitleWithMentions } from "@/components/tasks/task-item";
 import { QuickCapture } from "@/components/tasks/quick-capture";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -155,92 +155,7 @@ export function PlanningMode({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Left: Today's Plan */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Today&apos;s Plan</h2>
-          <span className="text-sm text-muted-foreground">
-            {scheduledTasks.length} task{scheduledTasks.length !== 1 ? "s" : ""}
-          </span>
-        </div>
-
-        {/* Carry-forward banner */}
-        {carryForwardTasks.length > 0 && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30 p-3 mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                {carryForwardTasks.length} unfinished from previous days
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 text-xs text-amber-700 dark:text-amber-300"
-                onClick={handleAddAllCarryForward}
-                disabled={isScheduling}
-              >
-                Add all to today
-              </Button>
-            </div>
-            <div className="space-y-1">
-              {carryForwardTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="flex items-center justify-between gap-2 text-sm py-1"
-                >
-                  <span className="truncate text-amber-900 dark:text-amber-100">
-                    {task.title}
-                  </span>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => handleSchedule(task.id)}
-                      disabled={isScheduling}
-                      title="Add to today"
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Scheduled task list with drag-and-drop reordering */}
-        {scheduledTasks.length > 0 ? (
-          <PlanSortableList
-            tasks={scheduledTasks}
-            onComplete={onComplete}
-            onDelete={onDelete}
-            onUpdate={onUpdate}
-            onUnschedule={handleUnschedule}
-            disableUnschedule={isScheduling}
-          />
-        ) : (
-          <p className="text-sm text-muted-foreground text-center py-8">
-            No tasks planned yet. Add tasks from the right panel.
-          </p>
-        )}
-
-        <Separator className="my-4" />
-
-        <QuickCapture onCapture={onQuickCapture} placeholder="Quick capture to inbox…" />
-
-        <div className="mt-4">
-          <Button
-            onClick={onFinishPlanning}
-            disabled={isPending}
-            className="w-full"
-          >
-            <Check className="h-4 w-4 mr-2" />
-            Done planning
-          </Button>
-        </div>
-      </div>
-
-      {/* Right: Available Tasks Browser */}
+      {/* Left: Available Tasks Browser */}
       <div>
         <div className="mb-4">
           <h2 className="text-lg font-semibold mb-3">Available Tasks</h2>
@@ -343,6 +258,91 @@ export function PlanningMode({
               {filter ? "No tasks match your filter." : "No available tasks."}
             </p>
           )}
+        </div>
+      </div>
+
+      {/* Right: Today's Plan */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Today&apos;s Plan</h2>
+          <span className="text-sm text-muted-foreground">
+            {scheduledTasks.length} task{scheduledTasks.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+
+        {/* Carry-forward banner */}
+        {carryForwardTasks.length > 0 && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30 p-3 mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                {carryForwardTasks.length} unfinished from previous days
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs text-amber-700 dark:text-amber-300"
+                onClick={handleAddAllCarryForward}
+                disabled={isScheduling}
+              >
+                Add all to today
+              </Button>
+            </div>
+            <div className="space-y-1">
+              {carryForwardTasks.map((task) => (
+                <div
+                  key={task.id}
+                  className="flex items-center justify-between gap-2 text-sm py-1"
+                >
+                  <span className="truncate text-amber-900 dark:text-amber-100">
+                    {renderTitleWithMentions(task.title)}
+                  </span>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => handleSchedule(task.id)}
+                      disabled={isScheduling}
+                      title="Add to today"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Scheduled task list with drag-and-drop reordering */}
+        {scheduledTasks.length > 0 ? (
+          <PlanSortableList
+            tasks={scheduledTasks}
+            onComplete={onComplete}
+            onDelete={onDelete}
+            onUpdate={onUpdate}
+            onUnschedule={handleUnschedule}
+            disableUnschedule={isScheduling}
+          />
+        ) : (
+          <p className="text-sm text-muted-foreground text-center py-8">
+            No tasks planned yet. Add tasks from the left panel.
+          </p>
+        )}
+
+        <Separator className="my-4" />
+
+        <QuickCapture onCapture={onQuickCapture} placeholder="Quick capture to inbox…" />
+
+        <div className="mt-4">
+          <Button
+            onClick={onFinishPlanning}
+            disabled={isPending}
+            className="w-full"
+          >
+            <Check className="h-4 w-4 mr-2" />
+            Done planning
+          </Button>
         </div>
       </div>
     </div>
@@ -514,7 +514,7 @@ function AvailableTaskRow({
 }) {
   return (
     <div className="flex items-center gap-2 group rounded px-2 py-1.5 hover:bg-accent/50 transition-colors">
-      <span className="flex-1 text-sm truncate">{task.title}</span>
+      <span className="flex-1 text-sm truncate">{renderTitleWithMentions(task.title)}</span>
       {task.dueDate && (
         <span className="text-xs text-muted-foreground shrink-0">
           📅 {task.dueDate}

@@ -17,6 +17,7 @@ export async function createTaskAction(input: {
   dueDate?: string;
   priority?: Priority;
   tags?: string[];
+  recurrence?: string;
 }): Promise<void> {
   const db = getDb();
   const vaultDir = getVaultDir();

@@ -162,12 +162,20 @@ export async function completeTask(
   // Generate next occurrence for recurring tasks (only when completing)
   if (nowCompleting && currentTask.recurrence) {
     const today = new Date().toISOString().slice(0, 10);
-    // After-completion mode (every!): base on today's date
-    // Fixed-schedule mode (every): base on due date
-    const baseDate = isAfterCompletion(currentTask.recurrence)
-      ? today
-      : (currentTask.dueDate ?? today);
-    const nextDue = nextRecurrenceDate(currentTask.recurrence, baseDate);
+    // After-completion mode (every!): base on today's date — always produces a future date
+    // Fixed-schedule mode (every): base on due date, but skip forward if overdue
+    const afterComp = isAfterCompletion(currentTask.recurrence);
+    let baseDate = afterComp ? today : (currentTask.dueDate ?? today);
+    let nextDue = nextRecurrenceDate(currentTask.recurrence, baseDate);
+
+    // For fixed-schedule: if the next occurrence is still in the past, keep
+    // advancing until we land on a future date (handles overdue tasks)
+    if (!afterComp && nextDue && nextDue < today) {
+      while (nextDue && nextDue < today) {
+        nextDue = nextRecurrenceDate(currentTask.recurrence, nextDue);
+      }
+    }
+
     if (nextDue) {
       const nextTask: Task = {
         ...currentTask,

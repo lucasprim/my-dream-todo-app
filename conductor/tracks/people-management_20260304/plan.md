@@ -3,7 +3,7 @@
 **Track ID:** people-management_20260304
 **Spec:** [spec.md](./spec.md)
 **Created:** 2026-03-04
-**Status:** [ ] Not Started
+**Status:** [x] Complete
 
 ## Overview
 
@@ -88,10 +88,10 @@ Add an interactive `@` mention autocomplete to task input fields.
 
 ### Tasks
 
-- [ ] Task 5.1: Create `MentionAutocomplete` component — listens for `@` keystrokes, shows dropdown of matching people from `searchPeopleAction()`, inserts `[[@Name]]` on selection
-- [ ] Task 5.2: Integrate `MentionAutocomplete` into `QuickCapture` component
-- [ ] Task 5.3: Integrate `MentionAutocomplete` into `TaskEditModal` component
-- [ ] Task 5.4: Style the autocomplete dropdown to match existing UI (shadcn/ui patterns)
+- [x] Task 5.1: Create `MentionInput` component — listens for `@` keystrokes, shows dropdown of matching people from `searchPeopleAction()`, inserts `[[@Name]]` on selection
+- [x] Task 5.2: Integrate `MentionInput` into `QuickCapture` component
+- [x] Task 5.3: Integrate `MentionInput` into `TaskEditModal` component
+- [x] Task 5.4: Style the autocomplete dropdown to match existing UI (shadcn/ui popover pattern)
 
 ### Verification
 

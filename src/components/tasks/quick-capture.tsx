@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Input } from "@/components/ui/input";
+import { MentionInput } from "@/components/tasks/mention-input";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
@@ -29,13 +29,14 @@ export function QuickCapture({
 
   return (
     <form onSubmit={handleSubmit} className="flex gap-2">
-      <Input
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder={placeholder}
-        disabled={isPending}
-        className="flex-1"
-      />
+      <div className="flex-1">
+        <MentionInput
+          value={value}
+          onChange={setValue}
+          placeholder={placeholder}
+          disabled={isPending}
+        />
+      </div>
       <Button type="submit" size="icon" disabled={isPending || !value.trim()}>
         <Plus className="h-4 w-4" />
       </Button>

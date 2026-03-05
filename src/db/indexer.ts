@@ -55,10 +55,12 @@ function classifyFile(
 }
 
 /**
- * Resolve a person name to a person ID. If the person doesn't exist, create them.
+ * Resolve a person name to a person ID. If the person doesn't exist, create
+ * them in both the DB and the vault (People/ folder).
  */
 async function resolveOrCreatePerson(
   db: Db,
+  vaultDir: string,
   name: string,
   now: Date
 ): Promise<number> {
@@ -79,9 +81,17 @@ async function resolveOrCreatePerson(
     return existing[0].id;
   }
 
+  // Create a vault file so the person shows up in Obsidian
+  const relPath = `${VAULT_DIRS.PEOPLE}/${name}.md`;
+  const fullPath = path.join(vaultDir, relPath);
+  if (!fs.existsSync(fullPath)) {
+    fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+    fs.writeFileSync(fullPath, `# ${name}\n`, "utf8");
+  }
+
   const result = await db
     .insert(schema.people)
-    .values({ slug, name, updatedAt: toIso(now) })
+    .values({ slug, name, filePath: relPath, updatedAt: toIso(now) })
     .returning({ id: schema.people.id });
 
   return result[0]!.id;
@@ -256,7 +266,7 @@ async function indexFile(
       if (mentions.length === 0 || !taskRow) continue;
 
       for (const mentionName of mentions) {
-        const personId = await resolveOrCreatePerson(db, mentionName, now);
+        const personId = await resolveOrCreatePerson(db, vaultDir, mentionName, now);
         await db
           .insert(schema.taskPeople)
           .values({ taskId: taskRow.id, personId });

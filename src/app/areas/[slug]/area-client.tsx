@@ -54,8 +54,8 @@ export function AreaClient({ area, initialTasks }: AreaClientProps) {
     router.refresh();
   };
 
-  const handleCapture = async (title: string) => {
-    await createTaskAction({ title, filePath: area.filePath });
+  const handleCapture = async (input: { title: string; dueDate?: string; recurrence?: string }) => {
+    await createTaskAction({ ...input, filePath: area.filePath });
     router.refresh();
   };
 

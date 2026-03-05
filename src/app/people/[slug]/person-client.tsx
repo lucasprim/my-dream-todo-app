@@ -36,7 +36,7 @@ function TaskWithSource({ task, actions }: {
   actions: {
     onComplete: (id: number) => Promise<void>;
     onDelete: (id: number) => Promise<void>;
-    onUpdate: (id: number, patch: { title?: string; dueDate?: string | null }) => Promise<void>;
+    onUpdate: (id: number, patch: { title?: string; dueDate?: string | null; recurrence?: string | null }) => Promise<void>;
   };
 }) {
   const ctx = taskContext(task);
@@ -64,7 +64,7 @@ export function PersonClient({ person, initialTasks }: PersonClientProps) {
   const actions = {
     onComplete: async (id: number) => { await completeTaskAction(id); router.refresh(); },
     onDelete: async (id: number) => { await deleteTaskAction(id); router.refresh(); },
-    onUpdate: async (id: number, patch: { title?: string; dueDate?: string | null }) => { await updateTaskAction(id, patch); router.refresh(); },
+    onUpdate: async (id: number, patch: { title?: string; dueDate?: string | null; recurrence?: string | null }) => { await updateTaskAction(id, patch); router.refresh(); },
   };
 
   return (

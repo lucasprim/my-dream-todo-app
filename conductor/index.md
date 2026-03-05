@@ -15,3 +15,4 @@ Navigation hub for project context.
 
 - [ ] [MVP - Initial Version](./tracks/mvp_20260304/index.md) — Full MVP with task CRUD, daily planning, sync, and more (10 phases, 48 tasks)
 - [ ] [People Management](./tracks/people-management_20260304/index.md) — Link [[@Person]] references to tasks, people directory, @ autocomplete (5 phases, 22 tasks)
+- [ ] [Task Recurrence Patterns](./tracks/task-recurrence_20260305/index.md) — Complex calendar recurrence patterns with rrule, after-completion mode, and recurrence picker UI (3 phases, 10 tasks)

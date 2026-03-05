@@ -1,0 +1,16 @@
+{
+  "id": "task-recurrence_20260305",
+  "title": "Task Recurrence Patterns",
+  "type": "feature",
+  "status": "complete",
+  "created": "2026-03-05T00:00:00Z",
+  "updated": "2026-03-05T00:00:00Z",
+  "phases": {
+    "total": 4,
+    "completed": 4
+  },
+  "tasks": {
+    "total": 14,
+    "completed": 14
+  }
+}

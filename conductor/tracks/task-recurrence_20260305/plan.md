@@ -1,0 +1,98 @@
+# Implementation Plan: Task Recurrence Patterns
+
+**Track ID:** task-recurrence_20260305
+**Spec:** [spec.md](./spec.md)
+**Created:** 2026-03-05
+**Status:** [x] Complete
+
+## Overview
+
+Enhance the recurrence engine with complex calendar pattern support (using `rrule` library for RFC 5545 compliance), add "after completion" vs "fixed schedule" distinction, and build a recurrence picker UI integrated into the task edit modal.
+
+## Phase 1: Enhanced Recurrence Engine
+
+Upgrade `src/lib/recurrence.ts` to support complex patterns using the `rrule` library while keeping the human-readable `🔁` text format in markdown.
+
+### Tasks
+
+- [x] Task 1.1: Install `rrule` library (`pnpm add rrule`)
+- [x] Task 1.2: Create `src/lib/recurrence-rules.ts` — mapping layer between human-readable recurrence text and RRULE objects. Support patterns:
+  - Simple: `every day`, `every 3 weeks`, `every month`, `every year`
+  - Multi-day: `every Mon/Wed/Fri`, `every weekday`, `every weekend`
+  - Ordinal: `every 2nd Tuesday`, `every 1st weekday`, `every last Friday`
+  - Monthly: `every last day of month`, `every last weekday of month`
+  - After-completion: `every! day`, `every! 2 weeks` (uses `!` marker like Todoist — next date relative to completion date, not original due date)
+- [x] Task 1.3: Refactor `nextRecurrenceDate()` in `src/lib/recurrence.ts` to use the new mapping layer, falling back to existing regex logic for unrecognized patterns
+- [x] Task 1.4: Write comprehensive tests for all supported patterns including edge cases (month overflow, leap year, year boundary, end-of-month ordinals)
+
+### Verification
+
+- [ ] All new and existing recurrence tests pass
+- [ ] Round-trip: human text → RRULE → next date produces correct results for all pattern types
+
+## Phase 2: Recurrence Picker UI
+
+Build a `RecurrencePicker` component and integrate it into the task edit modal.
+
+### Tasks
+
+- [x] Task 2.1: Create `src/components/tasks/recurrence-picker.tsx` — a popover/dropdown component with:
+  - Preset buttons: Daily, Weekly, Monthly, Yearly, Weekdays
+  - "After completion" toggle (adds `!` modifier)
+  - Custom pattern builder (interval + unit + optional day-of-week/ordinal selectors)
+  - Natural language preview of the selected pattern
+- [x] Task 2.2: Integrate `RecurrencePicker` into `TaskEditModal` — add recurrence field alongside title and due date
+- [x] Task 2.3: Update `updateTaskAction` and `createTaskAction` to accept and persist recurrence from the UI
+- [x] Task 2.4: Update task display in `task-item.tsx` to show human-friendly recurrence label (e.g., "Every 2nd Tuesday" instead of raw text)
+
+### Verification
+
+- [ ] Recurrence can be set/edited/cleared from the task edit modal
+- [ ] Recurrence persists correctly to markdown file with `🔁` emoji format
+- [ ] Task item displays recurrence label correctly
+
+## Phase 3: Completion Logic & Edge Cases
+
+Update task completion to handle "after completion" mode and polish edge cases.
+
+### Tasks
+
+- [x] Task 3.1: Update `completeTask()` in `task-actions-impl.ts` to distinguish between fixed-schedule (`every`) and after-completion (`every!`) modes — fixed uses due date as base, after-completion uses today's date
+- [x] Task 3.2: Handle edge cases: completing overdue recurring tasks (fixed schedule should skip to next future occurrence, not generate past dates), tasks with no due date but with recurrence
+- [x] Task 3.3: Write integration tests for completion + recurrence generation covering both modes and edge cases
+
+### Verification
+
+- [ ] Fixed-schedule recurring tasks generate next occurrence based on due date
+- [ ] After-completion recurring tasks generate next occurrence based on completion date
+- [ ] Overdue recurring tasks skip to next future occurrence
+- [ ] All tests passing
+
+## Phase 4: Due Date & Recurrence in Quick Capture
+
+Extend the `QuickCapture` component so users can set due date and recurrence at task creation time, not only when editing.
+
+### Tasks
+
+- [x] Task 4.1: Update `QuickCapture` component with expandable due date and recurrence fields, toggled by icon buttons (CalendarDays, Repeat)
+- [x] Task 4.2: Update parent `onCapture` handlers in inbox, today, project, and area clients to pass `dueDate` and `recurrence` through
+- [x] Task 4.3: Add `recurrence` to `quickCaptureToInboxAction` signature and implementation
+
+### Verification
+
+- [x] `npx next build` compiles without errors
+- [ ] Manual: inbox → click calendar icon → set date → type title → submit → task has due date
+- [ ] Manual: project → click repeat icon → set recurrence → submit → task has recurrence
+- [ ] Manual: icon toggles show/hide correctly, fields reset after submit
+
+## Final Verification
+
+- [ ] All acceptance criteria met
+- [ ] Tests passing (`pnpm test`)
+- [ ] Recurrence format is Obsidian Tasks plugin compatible (`🔁` emoji notation)
+- [ ] Complex patterns work end-to-end (UI → markdown → completion → next occurrence)
+- [ ] Ready for review
+
+---
+
+_Generated by Conductor. Tasks will be marked [~] in progress and [x] complete._

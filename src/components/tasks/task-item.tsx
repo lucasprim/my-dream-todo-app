@@ -9,6 +9,7 @@ import { Trash2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DbTask } from "@/db/schema";
 import { TaskEditModal } from "./task-edit-modal";
+import { formatRecurrenceLabel } from "./recurrence-picker";
 
 const MENTION_RE = /\[\[@([^\]]+)\]\]/g;
 
@@ -57,7 +58,7 @@ interface TaskItemProps {
   task: DbTask;
   onComplete: (id: number) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
-  onUpdate: (id: number, patch: { title?: string; dueDate?: string | null }) => Promise<void>;
+  onUpdate: (id: number, patch: { title?: string; dueDate?: string | null; recurrence?: string | null }) => Promise<void>;
 }
 
 const PRIORITY_COLORS = {
@@ -133,7 +134,7 @@ export function TaskItem({ task, onComplete, onDelete, onUpdate }: TaskItemProps
             )}
             {task.recurrence && (
               <span className="text-xs text-muted-foreground">
-                🔁 {task.recurrence}
+                🔁 {formatRecurrenceLabel(task.recurrence)}
               </span>
             )}
             {task.tags && task.tags !== "[]" && (

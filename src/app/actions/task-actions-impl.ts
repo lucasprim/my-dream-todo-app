@@ -9,7 +9,7 @@ import * as schema from "@/db/schema";
 import type { Priority } from "@/lib/markdown/schemas";
 import type { Task } from "@/lib/markdown/schemas";
 import { VAULT_FILES } from "@/lib/vault-config";
-import { nextRecurrenceDate } from "@/lib/recurrence";
+import { nextRecurrenceDate, isAfterCompletion } from "@/lib/recurrence";
 
 type Db = ReturnType<typeof drizzle<typeof schema>>;
 
@@ -161,15 +161,28 @@ export async function completeTask(
 
   // Generate next occurrence for recurring tasks (only when completing)
   if (nowCompleting && currentTask.recurrence) {
-    const baseDate = currentTask.dueDate ?? new Date().toISOString().slice(0, 10);
-    const nextDue = nextRecurrenceDate(currentTask.recurrence, baseDate);
+    const today = new Date().toISOString().slice(0, 10);
+    // After-completion mode (every!): base on today's date — always produces a future date
+    // Fixed-schedule mode (every): base on due date, but skip forward if overdue
+    const afterComp = isAfterCompletion(currentTask.recurrence);
+    let baseDate = afterComp ? today : (currentTask.dueDate ?? today);
+    let nextDue = nextRecurrenceDate(currentTask.recurrence, baseDate);
+
+    // For fixed-schedule: if the next occurrence is still in the past, keep
+    // advancing until we land on a future date (handles overdue tasks)
+    if (!afterComp && nextDue && nextDue < today) {
+      while (nextDue && nextDue < today) {
+        nextDue = nextRecurrenceDate(currentTask.recurrence, nextDue);
+      }
+    }
+
     if (nextDue) {
       const nextTask: Task = {
         ...currentTask,
         completed: false,
         dueDate: nextDue,
         doneDate: undefined,
-        createdDate: new Date().toISOString().slice(0, 10),
+        createdDate: today,
       };
       newContent = appendTask(newContent, nextTask);
     }
@@ -257,13 +270,14 @@ export async function reorderTasks(
 export async function quickCaptureToInbox(
   db: Db,
   vaultDir: string,
-  input: { title: string; dueDate?: string; priority?: Priority; tags?: string[] }
+  input: { title: string; dueDate?: string; priority?: Priority; tags?: string[]; recurrence?: string }
 ): Promise<void> {
   const task: Task = {
     title: input.title,
     completed: false,
     priority: input.priority ?? "normal",
     dueDate: input.dueDate,
+    recurrence: input.recurrence,
     tags: input.tags ?? [],
     dependsOn: [],
     mentions: [],

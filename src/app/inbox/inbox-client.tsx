@@ -43,8 +43,8 @@ export function InboxClient({ groups, today }: InboxClientProps) {
 
   const totalPending = groups.reduce((sum, g) => sum + g.tasks.length, 0);
 
-  const handleCapture = async (title: string) => {
-    await quickCaptureToInboxAction({ title });
+  const handleCapture = async (input: { title: string; dueDate?: string; recurrence?: string }) => {
+    await quickCaptureToInboxAction(input);
     router.refresh();
   };
 
@@ -112,7 +112,7 @@ interface TaskGroupSectionProps {
   today: string;
   onComplete: (id: number) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
-  onUpdate: (id: number, patch: { title?: string; dueDate?: string | null }) => Promise<void>;
+  onUpdate: (id: number, patch: { title?: string; dueDate?: string | null; recurrence?: string | null }) => Promise<void>;
   onMoveToToday: (id: number) => Promise<void>;
 }
 

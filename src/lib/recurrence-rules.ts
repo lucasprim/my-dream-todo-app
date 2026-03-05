@@ -210,25 +210,13 @@ function parseBody(body: string, dtstart: Date): RRule | null {
     });
   }
 
-  // "N months" / "month"
-  const monthMatch = body.match(/^(?:(\d+)\s+)?months?$/);
-  if (monthMatch) {
-    return new RRule({
-      freq: RRule.MONTHLY,
-      interval: parseInt(monthMatch[1] ?? "1", 10),
-      dtstart,
-    });
-  }
+  // "N months" / "month" — handled via manual clamping (not rrule)
+  // rrule skips months that don't have the target day (e.g., Jan 31 → skips Feb)
+  if (/^(?:\d+\s+)?months?$/.test(body)) return null;
 
-  // "N years" / "year"
-  const yearMatch = body.match(/^(?:(\d+)\s+)?years?$/);
-  if (yearMatch) {
-    return new RRule({
-      freq: RRule.YEARLY,
-      interval: parseInt(yearMatch[1] ?? "1", 10),
-      dtstart,
-    });
-  }
+  // "N years" / "year" — handled via manual clamping (not rrule)
+  // rrule skips years without Feb 29 for leap-day dates
+  if (/^(?:\d+\s+)?years?$/.test(body)) return null;
 
   return null;
 }

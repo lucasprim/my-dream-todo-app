@@ -20,6 +20,24 @@ const DAY_NAMES = [
 
 export { isAfterCompletion };
 
+/**
+ * Add N months to a date, clamping to the last day of the target month
+ * if the original day doesn't exist (e.g., Jan 31 + 1 month → Feb 28).
+ */
+function addMonthsClamped(base: Date, months: number): string {
+  const origDay = base.getUTCDate();
+  const targetMonth = base.getUTCMonth() + months;
+  const result = new Date(
+    Date.UTC(base.getUTCFullYear(), targetMonth, 1, 12, 0, 0)
+  );
+  // Days in the target month
+  const daysInMonth = new Date(
+    Date.UTC(result.getUTCFullYear(), result.getUTCMonth() + 1, 0)
+  ).getUTCDate();
+  result.setUTCDate(Math.min(origDay, daysInMonth));
+  return result.toISOString().slice(0, 10);
+}
+
 export function nextRecurrenceDate(
   recurrence: string,
   baseDateStr: string
@@ -78,20 +96,18 @@ function legacyNextDate(
     }
   }
 
-  // every N months / every month
-  const monthMatch = rule.match(/^every\s+(?:(\d+)\s+)?month(?:s)?$/);
+  // every N months / every month (with day-of-month clamping)
+  const monthMatch = rule.match(/^every!?\s+(?:(\d+)\s+)?month(?:s)?$/);
   if (monthMatch) {
     const n = parseInt(monthMatch[1] ?? "1", 10);
-    base.setUTCMonth(base.getUTCMonth() + n);
-    return base.toISOString().slice(0, 10);
+    return addMonthsClamped(base, n);
   }
 
-  // every N years / every year
-  const yearMatch = rule.match(/^every\s+(?:(\d+)\s+)?year(?:s)?$/);
+  // every N years / every year (with day-of-month clamping)
+  const yearMatch = rule.match(/^every!?\s+(?:(\d+)\s+)?year(?:s)?$/);
   if (yearMatch) {
     const n = parseInt(yearMatch[1] ?? "1", 10);
-    base.setUTCFullYear(base.getUTCFullYear() + n);
-    return base.toISOString().slice(0, 10);
+    return addMonthsClamped(base, n * 12);
   }
 
   return null;

@@ -16,7 +16,7 @@ Upgrade `src/lib/recurrence.ts` to support complex patterns using the `rrule` li
 ### Tasks
 
 - [x] Task 1.1: Install `rrule` library (`pnpm add rrule`)
-- [ ] Task 1.2: Create `src/lib/recurrence-rules.ts` — mapping layer between human-readable recurrence text and RRULE objects. Support patterns:
+- [x] Task 1.2: Create `src/lib/recurrence-rules.ts` — mapping layer between human-readable recurrence text and RRULE objects. Support patterns:
   - Simple: `every day`, `every 3 weeks`, `every month`, `every year`
   - Multi-day: `every Mon/Wed/Fri`, `every weekday`, `every weekend`
   - Ordinal: `every 2nd Tuesday`, `every 1st weekday`, `every last Friday`

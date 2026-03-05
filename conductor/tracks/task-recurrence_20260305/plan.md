@@ -36,7 +36,7 @@ Build a `RecurrencePicker` component and integrate it into the task edit modal.
 
 ### Tasks
 
-- [ ] Task 2.1: Create `src/components/tasks/recurrence-picker.tsx` — a popover/dropdown component with:
+- [x] Task 2.1: Create `src/components/tasks/recurrence-picker.tsx` — a popover/dropdown component with:
   - Preset buttons: Daily, Weekly, Monthly, Yearly, Weekdays
   - "After completion" toggle (adds `!` modifier)
   - Custom pattern builder (interval + unit + optional day-of-week/ordinal selectors)

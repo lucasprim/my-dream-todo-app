@@ -81,6 +81,41 @@ export const tasks = sqliteTable(
   ]
 );
 
+// ── People ───────────────────────────────────────────────────────────────────
+
+export const people = sqliteTable(
+  "people",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    slug: text("slug").notNull().unique(),
+    name: text("name").notNull(),
+    /** File path in People/ folder (null if auto-created from mention) */
+    filePath: text("file_path"),
+    email: text("email"),
+    company: text("company"),
+    updatedAt: text("updated_at").notNull(), // ISO string
+  },
+  (t) => [index("people_slug_idx").on(t.slug)]
+);
+
+// ── Task–People (join table) ─────────────────────────────────────────────────
+
+export const taskPeople = sqliteTable(
+  "task_people",
+  {
+    taskId: integer("task_id")
+      .notNull()
+      .references(() => tasks.id, { onDelete: "cascade" }),
+    personId: integer("person_id")
+      .notNull()
+      .references(() => people.id, { onDelete: "cascade" }),
+  },
+  (t) => [
+    index("task_people_task_idx").on(t.taskId),
+    index("task_people_person_idx").on(t.personId),
+  ]
+);
+
 // ── Daily Notes ───────────────────────────────────────────────────────────────
 
 export const dailyNotes = sqliteTable(
@@ -105,3 +140,7 @@ export type DbTask = typeof tasks.$inferSelect;
 export type NewDbTask = typeof tasks.$inferInsert;
 export type DailyNote = typeof dailyNotes.$inferSelect;
 export type NewDailyNote = typeof dailyNotes.$inferInsert;
+export type Person = typeof people.$inferSelect;
+export type NewPerson = typeof people.$inferInsert;
+export type TaskPerson = typeof taskPeople.$inferSelect;
+export type NewTaskPerson = typeof taskPeople.$inferInsert;

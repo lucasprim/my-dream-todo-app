@@ -14,3 +14,4 @@ Navigation hub for project context.
 ## Active Tracks
 
 - [ ] [MVP - Initial Version](./tracks/mvp_20260304/index.md) — Full MVP with task CRUD, daily planning, sync, and more (10 phases, 48 tasks)
+- [ ] [People Management](./tracks/people-management_20260304/index.md) — Link [[@Person]] references to tasks, people directory, @ autocomplete (5 phases, 22 tasks)

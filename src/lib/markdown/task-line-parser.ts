@@ -22,6 +22,9 @@ const TASK_ID_RE = /🆔\s*(\S+)/;
 /** Depends-on: ⛔ followed by comma-separated IDs */
 const DEPENDS_ON_RE = /⛔\s*([^📅✅⏳➕🛫🔺⏫🔼🔽⬇️🆔#\n]+)/;
 
+/** Mention pattern: [[@Person Name]] */
+const MENTION_RE = /\[\[@([^\]]+)\]\]/g;
+
 /** Tag pattern: #word */
 const TAG_RE = /#([\w-]+)/g;
 
@@ -80,6 +83,14 @@ export function parseTaskLine(line: string): Omit<Task, "id"> | null {
         .filter(Boolean)
     : [];
 
+  // Extract mentions ([[@Person Name]])
+  const mentions: string[] = [];
+  let mentionMatch: RegExpExecArray | null;
+  const mentionRegex = new RegExp(MENTION_RE.source, "g");
+  while ((mentionMatch = mentionRegex.exec(content)) !== null) {
+    mentions.push(mentionMatch[1]);
+  }
+
   // Extract tags
   const tags: string[] = [];
   let tagMatch: RegExpExecArray | null;
@@ -115,6 +126,7 @@ export function parseTaskLine(line: string): Omit<Task, "id"> | null {
     priority,
     recurrence,
     tags,
+    mentions,
     taskId,
     dependsOn,
   };

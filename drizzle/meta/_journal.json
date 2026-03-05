@@ -15,6 +15,13 @@
       "when": 1772634739531,
       "tag": "0001_dapper_sally_floyd",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1772669520231,
+      "tag": "0002_ambiguous_felicia_hardy",
+      "breakpoints": true
     }
   ]
 }

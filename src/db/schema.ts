@@ -78,6 +78,7 @@ export const tasks = sqliteTable(
     index("tasks_completed_idx").on(t.completed),
     index("tasks_project_id_idx").on(t.projectId),
     index("tasks_area_id_idx").on(t.areaId),
+    index("tasks_scheduled_date_idx").on(t.scheduledDate),
   ]
 );
 

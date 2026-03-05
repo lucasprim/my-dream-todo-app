@@ -22,7 +22,7 @@ function nameToSlug(name: string): string {
     .replace(/^-|-$/g, "");
 }
 
-function renderTitleWithMentions(title: string): React.ReactNode {
+export function renderTitleWithMentions(title: string): React.ReactNode {
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;
@@ -56,6 +56,7 @@ function renderTitleWithMentions(title: string): React.ReactNode {
 
 interface TaskItemProps {
   task: DbTask;
+  sourceLabel?: string;
   onComplete: (id: number) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
   onUpdate: (id: number, patch: { title?: string; dueDate?: string | null; recurrence?: string | null }) => Promise<void>;
@@ -79,7 +80,7 @@ const PRIORITY_LABELS = {
   lowest: "⬇️",
 } as const;
 
-export function TaskItem({ task, onComplete, onDelete, onUpdate }: TaskItemProps) {
+export function TaskItem({ task, sourceLabel, onComplete, onDelete, onUpdate }: TaskItemProps) {
   const [isPending, startTransition] = useTransition();
   const [showEdit, setShowEdit] = useState(false);
 
@@ -127,6 +128,9 @@ export function TaskItem({ task, onComplete, onDelete, onUpdate }: TaskItemProps
 
           {/* Metadata row */}
           <div className="mt-1 flex flex-wrap items-center gap-1.5">
+            {sourceLabel && (
+              <span className="text-xs text-muted-foreground">{sourceLabel}</span>
+            )}
             {task.dueDate && (
               <span className="text-xs text-muted-foreground">
                 📅 {task.dueDate}

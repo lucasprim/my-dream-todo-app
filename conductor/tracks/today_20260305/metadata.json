@@ -1,0 +1,16 @@
+{
+  "id": "today_20260305",
+  "title": "Today — Daily Planning",
+  "type": "feature",
+  "status": "complete",
+  "created": "2026-03-05T00:00:00.000Z",
+  "updated": "2026-03-05T00:00:00.000Z",
+  "phases": {
+    "total": 5,
+    "completed": 5
+  },
+  "tasks": {
+    "total": 25,
+    "completed": 25
+  }
+}

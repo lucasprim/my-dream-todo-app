@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import path from "path";
 import fs from "fs";
@@ -265,13 +265,47 @@ export async function reorderTasks(
   await reindexFile(db, vaultDir, filePath);
 }
 
+// ── Schedule / Unschedule Task ────────────────────────────────────────────────
+
+import { syncDailyNoteTasks } from "./daily-note-actions-impl";
+
+export async function scheduleTaskForDate(
+  db: Db,
+  vaultDir: string,
+  taskId: number,
+  date: string
+): Promise<void> {
+  await updateTask(db, vaultDir, taskId, { scheduledDate: date });
+  await syncDailyNoteTasks(db, vaultDir, date);
+}
+
+export async function unscheduleTask(
+  db: Db,
+  vaultDir: string,
+  taskId: number
+): Promise<void> {
+  // Look up the task's current scheduledDate before clearing it
+  const [dbTask] = await db
+    .select()
+    .from(schema.tasks)
+    .where(eq(schema.tasks.id, taskId))
+    .limit(1);
+  const prevDate = dbTask?.scheduledDate;
+
+  await updateTask(db, vaultDir, taskId, { scheduledDate: null });
+
+  if (prevDate) {
+    await syncDailyNoteTasks(db, vaultDir, prevDate);
+  }
+}
+
 // ── Quick Capture to Inbox ────────────────────────────────────────────────────
 
 export async function quickCaptureToInbox(
   db: Db,
   vaultDir: string,
   input: { title: string; dueDate?: string; priority?: Priority; tags?: string[]; recurrence?: string }
-): Promise<void> {
+): Promise<number> {
   const task: Task = {
     title: input.title,
     completed: false,
@@ -297,4 +331,13 @@ export async function quickCaptureToInbox(
   const updated = appendTask(rawContent, task);
   writeFile(vaultDir, inboxPath, updated);
   await reindexFile(db, vaultDir, inboxPath);
+
+  // Return the newly created task's DB id (highest line number in the inbox file)
+  const [newTask] = await db
+    .select({ id: schema.tasks.id })
+    .from(schema.tasks)
+    .where(eq(schema.tasks.filePath, inboxPath))
+    .orderBy(desc(schema.tasks.lineNumber))
+    .limit(1);
+  return newTask!.id;
 }

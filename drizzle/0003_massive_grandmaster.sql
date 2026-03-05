@@ -1,0 +1,1 @@
+CREATE INDEX `tasks_scheduled_date_idx` ON `tasks` (`scheduled_date`);

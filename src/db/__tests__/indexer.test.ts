@@ -113,8 +113,8 @@ describe("fullVaultScan", () => {
   it("indexes all tasks from the vault", async () => {
     await fullVaultScan(db, vaultDir);
     const allTasks = await db.select().from(schema.tasks);
-    // inbox: 2, project: 2, area: 1, daily: 1
-    expect(allTasks.length).toBe(6);
+    // inbox: 2, project: 2, area: 1 (daily note tasks are not indexed)
+    expect(allTasks.length).toBe(5);
   });
 
   it("indexes projects", async () => {
@@ -165,7 +165,7 @@ describe("fullVaultScan", () => {
     await fullVaultScan(db, vaultDir);
     await fullVaultScan(db, vaultDir);
     const allTasks = await db.select().from(schema.tasks);
-    expect(allTasks.length).toBe(6);
+    expect(allTasks.length).toBe(5);
   });
 });
 
@@ -211,7 +211,7 @@ type: inbox
 
     await reindexFile(db, vaultDir, "Inbox/inbox.md");
     const allTasks = await db.select().from(schema.tasks);
-    expect(allTasks.length).toBe(7); // 6 original + 1 new
+    expect(allTasks.length).toBe(6); // 5 original + 1 new
 
     const inboxTasks = allTasks.filter((t) =>
       t.filePath === "Inbox/inbox.md"

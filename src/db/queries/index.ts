@@ -1,4 +1,4 @@
-import { eq, and, isNull, isNotNull, lte, gte, like, desc, sql, count } from "drizzle-orm";
+import { eq, and, or, not, isNull, isNotNull, lt, lte, gte, ne, like, desc, sql, count } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as schema from "../schema";
 import type { DbTask, Project, Area, DailyNote, Person } from "../schema";
@@ -103,6 +103,130 @@ export async function getOverdueTasks(db: Db, today: string): Promise<DbTask[]> 
       )
     )
     .orderBy(schema.tasks.dueDate);
+}
+
+// ── Daily Planning Queries ────────────────────────────────────────────────────
+
+export type ScheduledTask = DbTask & {
+  projectTitle: string | null;
+  areaTitle: string | null;
+  source: "inbox" | "project" | "area" | "other";
+};
+
+export async function getTasksScheduledForDate(db: Db, date: string): Promise<ScheduledTask[]> {
+  const rows = await db
+    .select({
+      id: schema.tasks.id,
+      taskId: schema.tasks.taskId,
+      title: schema.tasks.title,
+      completed: schema.tasks.completed,
+      priority: schema.tasks.priority,
+      dueDate: schema.tasks.dueDate,
+      doneDate: schema.tasks.doneDate,
+      scheduledDate: schema.tasks.scheduledDate,
+      createdDate: schema.tasks.createdDate,
+      startDate: schema.tasks.startDate,
+      recurrence: schema.tasks.recurrence,
+      tags: schema.tasks.tags,
+      notes: schema.tasks.notes,
+      filePath: schema.tasks.filePath,
+      lineNumber: schema.tasks.lineNumber,
+      projectId: schema.tasks.projectId,
+      areaId: schema.tasks.areaId,
+      updatedAt: schema.tasks.updatedAt,
+      projectTitle: schema.projects.title,
+      areaTitle: schema.areas.title,
+    })
+    .from(schema.tasks)
+    .leftJoin(schema.projects, eq(schema.tasks.projectId, schema.projects.id))
+    .leftJoin(schema.areas, eq(schema.tasks.areaId, schema.areas.id))
+    .where(eq(schema.tasks.scheduledDate, date))
+    .orderBy(schema.tasks.completed, schema.tasks.lineNumber);
+
+  return rows.map((r) => ({
+    ...r,
+    source: r.filePath.startsWith("Inbox/")
+      ? ("inbox" as const)
+      : r.projectId
+        ? ("project" as const)
+        : r.areaId
+          ? ("area" as const)
+          : ("other" as const),
+  }));
+}
+
+export async function getCarryForwardTasks(db: Db, today: string): Promise<DbTask[]> {
+  return db
+    .select()
+    .from(schema.tasks)
+    .where(
+      and(
+        eq(schema.tasks.completed, 0),
+        isNotNull(schema.tasks.scheduledDate),
+        lt(schema.tasks.scheduledDate, today)
+      )
+    )
+    .orderBy(schema.tasks.scheduledDate);
+}
+
+export type AvailableTask = DbTask & {
+  projectTitle: string | null;
+  areaTitle: string | null;
+  source: "inbox" | "project" | "area" | "other";
+};
+
+export async function getAvailableTasksForPlanning(
+  db: Db,
+  date: string
+): Promise<AvailableTask[]> {
+  const rows = await db
+    .select({
+      id: schema.tasks.id,
+      taskId: schema.tasks.taskId,
+      title: schema.tasks.title,
+      completed: schema.tasks.completed,
+      priority: schema.tasks.priority,
+      dueDate: schema.tasks.dueDate,
+      doneDate: schema.tasks.doneDate,
+      scheduledDate: schema.tasks.scheduledDate,
+      createdDate: schema.tasks.createdDate,
+      startDate: schema.tasks.startDate,
+      recurrence: schema.tasks.recurrence,
+      tags: schema.tasks.tags,
+      notes: schema.tasks.notes,
+      filePath: schema.tasks.filePath,
+      lineNumber: schema.tasks.lineNumber,
+      projectId: schema.tasks.projectId,
+      areaId: schema.tasks.areaId,
+      updatedAt: schema.tasks.updatedAt,
+      projectTitle: schema.projects.title,
+      areaTitle: schema.areas.title,
+    })
+    .from(schema.tasks)
+    .leftJoin(schema.projects, eq(schema.tasks.projectId, schema.projects.id))
+    .leftJoin(schema.areas, eq(schema.tasks.areaId, schema.areas.id))
+    .where(
+      and(
+        eq(schema.tasks.completed, 0),
+        not(like(schema.tasks.filePath, "Calendar/%")),
+        or(
+          isNull(schema.tasks.scheduledDate),
+          ne(schema.tasks.scheduledDate, date)
+        )
+      )
+    )
+    .orderBy(schema.tasks.priority, schema.tasks.dueDate);
+
+  return rows.map((r) => ({
+    ...r,
+    source: r.filePath.startsWith("Inbox/")
+      ? ("inbox" as const)
+      : r.projectId
+        ? ("project" as const)
+        : r.areaId
+          ? ("area" as const)
+          : ("other" as const),
+  }));
 }
 
 export async function searchTasks(db: Db, query: string): Promise<DbTask[]> {

@@ -111,7 +111,8 @@ export function MentionInput({
 
     const before = val.slice(0, atPos);
     const after = val.slice(cursor);
-    const mention = `[[@${person.name}]]`;
+    const cleanName = person.name.replace(/^@+/, "");
+    const mention = `[[@${cleanName}]]`;
     const trailing = after.length === 0 ? " " : after.startsWith(" ") ? "" : " ";
     const newValue = before + mention + trailing + after;
 

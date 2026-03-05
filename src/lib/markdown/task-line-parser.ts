@@ -88,7 +88,7 @@ export function parseTaskLine(line: string): Omit<Task, "id"> | null {
   let mentionMatch: RegExpExecArray | null;
   const mentionRegex = new RegExp(MENTION_RE.source, "g");
   while ((mentionMatch = mentionRegex.exec(content)) !== null) {
-    mentions.push(mentionMatch[1]);
+    mentions.push(mentionMatch[1].replace(/^@+/, ""));
   }
 
   // Extract tags

@@ -9,7 +9,7 @@ import * as schema from "@/db/schema";
 import type { Priority } from "@/lib/markdown/schemas";
 import type { Task } from "@/lib/markdown/schemas";
 import { VAULT_FILES } from "@/lib/vault-config";
-import { nextRecurrenceDate } from "@/lib/recurrence";
+import { nextRecurrenceDate, isAfterCompletion } from "@/lib/recurrence";
 
 type Db = ReturnType<typeof drizzle<typeof schema>>;
 
@@ -161,7 +161,12 @@ export async function completeTask(
 
   // Generate next occurrence for recurring tasks (only when completing)
   if (nowCompleting && currentTask.recurrence) {
-    const baseDate = currentTask.dueDate ?? new Date().toISOString().slice(0, 10);
+    const today = new Date().toISOString().slice(0, 10);
+    // After-completion mode (every!): base on today's date
+    // Fixed-schedule mode (every): base on due date
+    const baseDate = isAfterCompletion(currentTask.recurrence)
+      ? today
+      : (currentTask.dueDate ?? today);
     const nextDue = nextRecurrenceDate(currentTask.recurrence, baseDate);
     if (nextDue) {
       const nextTask: Task = {
@@ -169,7 +174,7 @@ export async function completeTask(
         completed: false,
         dueDate: nextDue,
         doneDate: undefined,
-        createdDate: new Date().toISOString().slice(0, 10),
+        createdDate: today,
       };
       newContent = appendTask(newContent, nextTask);
     }

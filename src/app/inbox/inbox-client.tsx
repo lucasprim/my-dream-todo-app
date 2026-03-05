@@ -112,7 +112,7 @@ interface TaskGroupSectionProps {
   today: string;
   onComplete: (id: number) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
-  onUpdate: (id: number, patch: { title?: string; dueDate?: string | null }) => Promise<void>;
+  onUpdate: (id: number, patch: { title?: string; dueDate?: string | null; recurrence?: string | null }) => Promise<void>;
   onMoveToToday: (id: number) => Promise<void>;
 }
 

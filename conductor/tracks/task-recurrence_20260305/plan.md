@@ -41,7 +41,7 @@ Build a `RecurrencePicker` component and integrate it into the task edit modal.
   - "After completion" toggle (adds `!` modifier)
   - Custom pattern builder (interval + unit + optional day-of-week/ordinal selectors)
   - Natural language preview of the selected pattern
-- [ ] Task 2.2: Integrate `RecurrencePicker` into `TaskEditModal` — add recurrence field alongside title and due date
+- [x] Task 2.2: Integrate `RecurrencePicker` into `TaskEditModal` — add recurrence field alongside title and due date
 - [ ] Task 2.3: Update `updateTaskAction` and `createTaskAction` to accept and persist recurrence from the UI
 - [ ] Task 2.4: Update task display in `task-item.tsx` to show human-friendly recurrence label (e.g., "Every 2nd Tuesday" instead of raw text)
 

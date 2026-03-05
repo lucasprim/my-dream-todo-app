@@ -5,7 +5,6 @@ import {
   useRef,
   useCallback,
   useEffect,
-  forwardRef,
   type KeyboardEvent,
   type ChangeEvent,
 } from "react";
@@ -38,11 +37,13 @@ export function MentionInput({
   const [suggestions, setSuggestions] = useState<Person[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [mentionStart, setMentionStart] = useState<number | null>(null);
-  const [mentionQuery, setMentionQuery] = useState("");
+  const [activeMention, setActiveMention] = useState<{ query: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // Keep a ref to the latest value so insertMention always sees current text
+  const valueRef = useRef(value);
+  valueRef.current = value;
 
   const searchMentions = useCallback(async (query: string) => {
     if (query.length < 1) {
@@ -61,26 +62,23 @@ export function MentionInput({
     onChange(newValue);
 
     const cursorPos = e.target.selectionStart ?? newValue.length;
-
-    // Find if we're typing after an @ that isn't inside [[@...]]
     const textBefore = newValue.slice(0, cursorPos);
+
+    // Find the last standalone @ (not inside an existing [[@...]])
     const atIndex = textBefore.lastIndexOf("@");
 
     if (atIndex >= 0) {
-      // Check if this @ is already inside a [[@...]] reference
       const beforeAt = textBefore.slice(0, atIndex);
       if (beforeAt.endsWith("[[")) {
         // Already inside wiki-link — don't show autocomplete
         setShowSuggestions(false);
-        setMentionStart(null);
+        setActiveMention(null);
         return;
       }
 
       const query = textBefore.slice(atIndex + 1);
-      // Only trigger if query is reasonable
-      if (query.length >= 0 && !query.includes("\n")) {
-        setMentionStart(atIndex);
-        setMentionQuery(query);
+      if (!query.includes("\n") && !query.includes(" ")) {
+        setActiveMention({ query });
         if (debounceRef.current) clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(() => searchMentions(query), 150);
         return;
@@ -88,27 +86,29 @@ export function MentionInput({
     }
 
     setShowSuggestions(false);
-    setMentionStart(null);
+    setActiveMention(null);
   };
 
   const insertMention = (person: Person) => {
-    if (mentionStart === null) return;
+    if (!activeMention) return;
 
-    // Replace "@query" (from mentionStart to mentionStart + 1 + query length) with [[@Name]]
-    const before = value.slice(0, mentionStart);
-    const afterIndex = mentionStart + 1 + mentionQuery.length;
-    const after = value.slice(afterIndex);
+    // Use the ref to get the absolutely latest value
+    const currentValue = valueRef.current;
+    // Find the @query pattern we need to replace — search from the end
+    const searchStr = `@${activeMention.query}`;
+    const idx = currentValue.lastIndexOf(searchStr);
+    if (idx === -1) return;
 
+    const before = currentValue.slice(0, idx);
+    const after = currentValue.slice(idx + searchStr.length);
     const mention = `[[@${person.name}]]`;
     const newValue = before + mention + (after.startsWith(" ") ? after : " " + after);
 
     onChange(newValue);
     setShowSuggestions(false);
-    setMentionStart(null);
-    setMentionQuery("");
+    setActiveMention(null);
     setSuggestions([]);
 
-    // Restore focus
     requestAnimationFrame(() => {
       const pos = before.length + mention.length + 1;
       inputRef.current?.focus();

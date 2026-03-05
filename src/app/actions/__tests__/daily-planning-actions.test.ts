@@ -23,6 +23,7 @@ import {
   reopenPlanning,
   isPlanningComplete,
   createOrGetDailyNote,
+  syncDailyNoteTasks,
 } from "../daily-note-actions-impl";
 
 const MIGRATIONS_DIR = path.join(process.cwd(), "drizzle");
@@ -263,6 +264,49 @@ describe("daily-planning queries and actions", () => {
       expect(fs.existsSync(notePath)).toBe(true);
       const parsed = matter(fs.readFileSync(notePath, "utf8"));
       expect(parsed.data.planned).toBe(true);
+    });
+  });
+
+  describe("syncDailyNoteTasks", () => {
+    it("writes scheduled tasks into daily note ## Tasks section", async () => {
+      await syncDailyNoteTasks(db, vaultDir, "2026-03-05");
+
+      const fileContent = fs.readFileSync(
+        path.join(vaultDir, "Calendar/2026-03-05.md"),
+        "utf8"
+      );
+      // Project task B is scheduled for 2026-03-05
+      expect(fileContent).toContain("Project task B");
+      expect(fileContent).toContain("## Tasks");
+    });
+
+    it("updates daily note when tasks are scheduled/unscheduled", async () => {
+      // Schedule a new task for today
+      const allTasks = await db.select().from(schema.tasks);
+      const taskA = allTasks.find((t) => t.title === "Project task A");
+      expect(taskA).toBeDefined();
+
+      await scheduleTaskForDate(db, vaultDir, taskA!.id, "2026-03-05");
+
+      const fileContent = fs.readFileSync(
+        path.join(vaultDir, "Calendar/2026-03-05.md"),
+        "utf8"
+      );
+      expect(fileContent).toContain("Project task A");
+      expect(fileContent).toContain("Project task B");
+    });
+
+    it("finishPlanning writes tasks and sets planned flag", async () => {
+      await finishPlanning(db, vaultDir, "2026-03-05");
+
+      const fileContent = fs.readFileSync(
+        path.join(vaultDir, "Calendar/2026-03-05.md"),
+        "utf8"
+      );
+      const parsed = matter(fileContent);
+      expect(parsed.data.planned).toBe(true);
+      // Should contain the scheduled task
+      expect(fileContent).toContain("Project task B");
     });
   });
 

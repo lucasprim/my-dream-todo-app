@@ -267,6 +267,8 @@ export async function reorderTasks(
 
 // ── Schedule / Unschedule Task ────────────────────────────────────────────────
 
+import { syncDailyNoteTasks } from "./daily-note-actions-impl";
+
 export async function scheduleTaskForDate(
   db: Db,
   vaultDir: string,
@@ -274,6 +276,7 @@ export async function scheduleTaskForDate(
   date: string
 ): Promise<void> {
   await updateTask(db, vaultDir, taskId, { scheduledDate: date });
+  await syncDailyNoteTasks(db, vaultDir, date);
 }
 
 export async function unscheduleTask(
@@ -281,7 +284,19 @@ export async function unscheduleTask(
   vaultDir: string,
   taskId: number
 ): Promise<void> {
+  // Look up the task's current scheduledDate before clearing it
+  const [dbTask] = await db
+    .select()
+    .from(schema.tasks)
+    .where(eq(schema.tasks.id, taskId))
+    .limit(1);
+  const prevDate = dbTask?.scheduledDate;
+
   await updateTask(db, vaultDir, taskId, { scheduledDate: null });
+
+  if (prevDate) {
+    await syncDailyNoteTasks(db, vaultDir, prevDate);
+  }
 }
 
 // ── Quick Capture to Inbox ────────────────────────────────────────────────────

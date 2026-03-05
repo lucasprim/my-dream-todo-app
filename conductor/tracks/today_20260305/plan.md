@@ -78,10 +78,10 @@ Auto-generate the daily note when the plan changes so it stays in sync with the 
 
 ### Tasks
 
-- [ ] Task 4.1: Auto-create/update `Calendar/YYYY-MM-DD.md` when tasks are scheduled/unscheduled — write planned task list in `## Tasks` section using Obsidian-compatible format
-- [ ] Task 4.2: Update daily note on task completion — mark completed tasks with ✅ in the daily note
-- [ ] Task 4.3: Ensure daily note frontmatter includes `planned: true/false` and `date` fields
-- [ ] Task 4.4: Handle re-planning — when user re-opens planning, daily note reflects the updated plan
+- [x] Task 4.1: Auto-create/update `Calendar/YYYY-MM-DD.md` when tasks are scheduled/unscheduled — write planned task list in `## Tasks` section using Obsidian-compatible format
+- [x] Task 4.2: Update daily note on task completion — mark completed tasks with ✅ in the daily note
+- [x] Task 4.3: Ensure daily note frontmatter includes `planned: true/false` and `date` fields
+- [x] Task 4.4: Handle re-planning — when user re-opens planning, daily note reflects the updated plan
 
 ### Verification
 

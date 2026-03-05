@@ -59,7 +59,7 @@ Update task completion to handle "after completion" mode and polish edge cases.
 
 - [x] Task 3.1: Update `completeTask()` in `task-actions-impl.ts` to distinguish between fixed-schedule (`every`) and after-completion (`every!`) modes — fixed uses due date as base, after-completion uses today's date
 - [x] Task 3.2: Handle edge cases: completing overdue recurring tasks (fixed schedule should skip to next future occurrence, not generate past dates), tasks with no due date but with recurrence
-- [ ] Task 3.3: Write integration tests for completion + recurrence generation covering both modes and edge cases
+- [x] Task 3.3: Write integration tests for completion + recurrence generation covering both modes and edge cases
 
 ### Verification
 

@@ -156,6 +156,131 @@ describe("task-actions", () => {
     });
   });
 
+  describe("completeTask with recurrence", () => {
+    it("creates next occurrence for fixed-schedule recurring task", async () => {
+      // Create a recurring task
+      await createTask(db, vaultDir, {
+        title: "Recurring task",
+        filePath: "Inbox/inbox.md",
+        dueDate: "2026-03-05",
+        recurrence: "every week",
+      });
+
+      // Find and complete it
+      const tasks = await db
+        .select()
+        .from(schema.tasks)
+        .where(eq(schema.tasks.filePath, "Inbox/inbox.md"));
+      const recurring = tasks.find((t) => t.title === "Recurring task");
+      expect(recurring).toBeDefined();
+
+      await completeTask(db, vaultDir, recurring!.id);
+
+      const fileContent = fs.readFileSync(
+        path.join(vaultDir, "Inbox/inbox.md"),
+        "utf8"
+      );
+      // Original should be completed
+      expect(fileContent).toContain("- [x] Recurring task");
+      // New occurrence should be appended with next due date
+      expect(fileContent).toContain("📅 2026-03-12");
+    });
+
+    it("uses today as base for after-completion mode", async () => {
+      await createTask(db, vaultDir, {
+        title: "After-completion task",
+        filePath: "Inbox/inbox.md",
+        dueDate: "2026-02-01",
+        recurrence: "every! week",
+      });
+
+      const tasks = await db
+        .select()
+        .from(schema.tasks)
+        .where(eq(schema.tasks.filePath, "Inbox/inbox.md"));
+      const task = tasks.find((t) => t.title === "After-completion task");
+      expect(task).toBeDefined();
+
+      await completeTask(db, vaultDir, task!.id);
+
+      const fileContent = fs.readFileSync(
+        path.join(vaultDir, "Inbox/inbox.md"),
+        "utf8"
+      );
+      // The new occurrence should be based on today, not the old due date
+      const today = new Date().toISOString().slice(0, 10);
+      // The task should NOT have 2026-02-08 (old due + 1 week)
+      expect(fileContent).not.toContain("📅 2026-02-08");
+      // It should have a date after today
+      const allTasks = await db
+        .select()
+        .from(schema.tasks)
+        .where(eq(schema.tasks.filePath, "Inbox/inbox.md"));
+      const uncompleted = allTasks.filter(
+        (t) => t.title === "After-completion task" && t.completed === 0
+      );
+      expect(uncompleted).toHaveLength(1);
+      expect(uncompleted[0]!.dueDate! >= today).toBe(true);
+    });
+
+    it("skips to future date for overdue fixed-schedule task", async () => {
+      // Create a task that was due far in the past
+      await createTask(db, vaultDir, {
+        title: "Overdue recurring",
+        filePath: "Inbox/inbox.md",
+        dueDate: "2025-01-01",
+        recurrence: "every month",
+      });
+
+      const tasks = await db
+        .select()
+        .from(schema.tasks)
+        .where(eq(schema.tasks.filePath, "Inbox/inbox.md"));
+      const task = tasks.find((t) => t.title === "Overdue recurring");
+      expect(task).toBeDefined();
+
+      await completeTask(db, vaultDir, task!.id);
+
+      // The new occurrence should be in the future, not 2025-02-01
+      const allTasks = await db
+        .select()
+        .from(schema.tasks)
+        .where(eq(schema.tasks.filePath, "Inbox/inbox.md"));
+      const uncompleted = allTasks.filter(
+        (t) => t.title === "Overdue recurring" && t.completed === 0
+      );
+      expect(uncompleted).toHaveLength(1);
+      const today = new Date().toISOString().slice(0, 10);
+      expect(uncompleted[0]!.dueDate! >= today).toBe(true);
+    });
+
+    it("preserves recurrence rule on the new occurrence", async () => {
+      await createTask(db, vaultDir, {
+        title: "Preserve recurrence",
+        filePath: "Inbox/inbox.md",
+        dueDate: "2026-03-05",
+        recurrence: "every 2 weeks",
+      });
+
+      const tasks = await db
+        .select()
+        .from(schema.tasks)
+        .where(eq(schema.tasks.filePath, "Inbox/inbox.md"));
+      const task = tasks.find((t) => t.title === "Preserve recurrence");
+      await completeTask(db, vaultDir, task!.id);
+
+      const allTasks = await db
+        .select()
+        .from(schema.tasks)
+        .where(eq(schema.tasks.filePath, "Inbox/inbox.md"));
+      const newOccurrence = allTasks.find(
+        (t) => t.title === "Preserve recurrence" && t.completed === 0
+      );
+      expect(newOccurrence).toBeDefined();
+      expect(newOccurrence!.recurrence).toBe("every 2 weeks");
+    });
+  });
+
   describe("deleteTask", () => {
     it("removes task line from the file", async () => {
       const tasks = await db

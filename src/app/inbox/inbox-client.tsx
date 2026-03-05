@@ -43,8 +43,8 @@ export function InboxClient({ groups, today }: InboxClientProps) {
 
   const totalPending = groups.reduce((sum, g) => sum + g.tasks.length, 0);
 
-  const handleCapture = async (title: string) => {
-    await quickCaptureToInboxAction({ title });
+  const handleCapture = async (input: { title: string; dueDate?: string; recurrence?: string }) => {
+    await quickCaptureToInboxAction(input);
     router.refresh();
   };
 

@@ -57,8 +57,8 @@ export function ProjectClient({ project, initialTasks }: ProjectClientProps) {
     router.refresh();
   };
 
-  const handleCapture = async (title: string) => {
-    await createTaskAction({ title, filePath: project.filePath });
+  const handleCapture = async (input: { title: string; dueDate?: string; recurrence?: string }) => {
+    await createTaskAction({ ...input, filePath: project.filePath });
     router.refresh();
   };
 

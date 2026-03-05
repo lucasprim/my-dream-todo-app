@@ -27,19 +27,75 @@ const UNITS = [
   { label: "years", value: "years" },
 ] as const;
 
+const ORDINALS = [
+  { label: "1st", value: "1st" },
+  { label: "2nd", value: "2nd" },
+  { label: "3rd", value: "3rd" },
+  { label: "4th", value: "4th" },
+  { label: "Last", value: "last" },
+] as const;
+
+const MONTH_DAYS = [
+  { label: "Monday", value: "monday" },
+  { label: "Tuesday", value: "tuesday" },
+  { label: "Wednesday", value: "wednesday" },
+  { label: "Thursday", value: "thursday" },
+  { label: "Friday", value: "friday" },
+  { label: "Saturday", value: "saturday" },
+  { label: "Sunday", value: "sunday" },
+  { label: "Weekday", value: "weekday" },
+] as const;
+
+const WEEK_DAYS = [
+  { label: "Mon", value: "mon" },
+  { label: "Tue", value: "tue" },
+  { label: "Wed", value: "wed" },
+  { label: "Thu", value: "thu" },
+  { label: "Fri", value: "fri" },
+  { label: "Sat", value: "sat" },
+  { label: "Sun", value: "sun" },
+] as const;
+
+const MONTHS = [
+  { label: "Jan", value: "jan" },
+  { label: "Feb", value: "feb" },
+  { label: "Mar", value: "mar" },
+  { label: "Apr", value: "apr" },
+  { label: "May", value: "may" },
+  { label: "Jun", value: "jun" },
+  { label: "Jul", value: "jul" },
+  { label: "Aug", value: "aug" },
+  { label: "Sep", value: "sep" },
+  { label: "Oct", value: "oct" },
+  { label: "Nov", value: "nov" },
+  { label: "Dec", value: "dec" },
+] as const;
+
+const DAY_NUMBERS = Array.from({ length: 31 }, (_, i) => i + 1);
+
 interface RecurrencePickerProps {
   value: string | null;
+  dueDate?: string | null;
   onChange: (value: string | null) => void;
 }
 
-export function RecurrencePicker({ value, onChange }: RecurrencePickerProps) {
+export function RecurrencePicker({ value, dueDate, onChange }: RecurrencePickerProps) {
   const [mode, setMode] = useState<"preset" | "custom">(
     value && !PRESETS.some((p) => normalizeRule(p.value) === normalizeRule(value))
       ? "custom"
       : "preset"
   );
-  const [customInterval, setCustomInterval] = useState("2");
-  const [customUnit, setCustomUnit] = useState("weeks");
+  const parsed = value ? parseExistingRule(value) : null;
+  const [customInterval, setCustomInterval] = useState(parsed?.interval ?? "2");
+  const [customUnit, setCustomUnit] = useState(parsed?.unit ?? "weeks");
+  const [monthOrdinal, setMonthOrdinal] = useState<string>(parsed?.monthOrdinal ?? "");
+  const [monthDay, setMonthDay] = useState<string>(parsed?.monthDay ?? "");
+  const [weekDays, setWeekDays] = useState<string[]>(parsed?.weekDays ?? []);
+  const [monthMode, setMonthMode] = useState<"onthe" | "each">(parsed?.monthMode ?? "onthe");
+  const [monthDayNumbers, setMonthDayNumbers] = useState<number[]>(parsed?.monthDayNumbers ?? []);
+  const [yearMonths, setYearMonths] = useState<string[]>(parsed?.yearMonths ?? []);
+  const [yearOrdinal, setYearOrdinal] = useState<string>(parsed?.yearOrdinal ?? "");
+  const [yearDay, setYearDay] = useState<string>(parsed?.yearDay ?? "");
   const [afterCompletion, setAfterCompletion] = useState(
     value?.startsWith("every!") ?? false
   );
@@ -51,16 +107,57 @@ export function RecurrencePicker({ value, onChange }: RecurrencePickerProps) {
     onChange(rule);
   };
 
-  const handleCustom = (interval?: string, unit?: string) => {
-    const i = interval ?? customInterval;
-    const u = unit ?? customUnit;
+  const handleCustom = (overrides?: {
+    interval?: string;
+    unit?: string;
+    ordinal?: string;
+    day?: string;
+    days?: string[];
+    mMode?: "onthe" | "each";
+    mDayNums?: number[];
+    yMonths?: string[];
+    yOrdinal?: string;
+    yDay?: string;
+  }) => {
+    const i = overrides?.interval ?? customInterval;
+    const u = overrides?.unit ?? customUnit;
     const n = parseInt(i, 10);
     if (isNaN(n) || n < 1) return;
     const prefix = afterCompletion ? "every!" : "every";
-    const rule = n === 1
+    const base = n === 1
       ? `${prefix} ${u.replace(/s$/, "")}`
       : `${prefix} ${n} ${u}`;
-    onChange(rule);
+
+    const ord = overrides?.ordinal ?? monthOrdinal;
+    const d = overrides?.day ?? monthDay;
+    const wd = overrides?.days ?? weekDays;
+    const mm = overrides?.mMode ?? monthMode;
+    const mdn = overrides?.mDayNums ?? monthDayNumbers;
+    const ym = overrides?.yMonths ?? yearMonths;
+    const yo = overrides?.yOrdinal ?? yearOrdinal;
+    const yd = overrides?.yDay ?? yearDay;
+
+    if (u === "months" && mm === "each" && mdn.length > 0) {
+      onChange(`${base} each ${mdn.join(",")}`);
+      return;
+    }
+    if (u === "months" && mm === "onthe" && ord && d) {
+      onChange(`${base} on the ${ord} ${d}`);
+      return;
+    }
+    if (u === "years" && ym.length > 0 && yo && yd) {
+      onChange(`${base} in ${ym.join("/")} on the ${yo} ${yd}`);
+      return;
+    }
+    if (u === "years" && ym.length > 0) {
+      onChange(`${base} in ${ym.join("/")}`);
+      return;
+    }
+    if (u === "weeks" && wd.length > 0) {
+      onChange(`${base} on ${wd.join("/")}`);
+      return;
+    }
+    onChange(base);
   };
 
   const toggleAfterCompletion = () => {
@@ -138,6 +235,7 @@ export function RecurrencePicker({ value, onChange }: RecurrencePickerProps) {
           ))}
         </div>
       ) : (
+        <>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Every</span>
           <Input
@@ -147,7 +245,7 @@ export function RecurrencePicker({ value, onChange }: RecurrencePickerProps) {
             value={customInterval}
             onChange={(e) => {
               setCustomInterval(e.target.value);
-              handleCustom(e.target.value, undefined);
+              handleCustom({ interval: e.target.value });
             }}
             className="w-16 h-8"
           />
@@ -155,7 +253,15 @@ export function RecurrencePicker({ value, onChange }: RecurrencePickerProps) {
             value={customUnit}
             onValueChange={(v) => {
               setCustomUnit(v);
-              handleCustom(undefined, v);
+              setMonthOrdinal("");
+              setMonthDay("");
+              setWeekDays([]);
+              setMonthMode("onthe");
+              setMonthDayNumbers([]);
+              setYearMonths([]);
+              setYearOrdinal("");
+              setYearDay("");
+              handleCustom({ unit: v, ordinal: "", day: "", days: [], mMode: "onthe", mDayNums: [], yMonths: [], yOrdinal: "", yDay: "" });
             }}
           >
             <SelectTrigger size="sm">
@@ -170,6 +276,215 @@ export function RecurrencePicker({ value, onChange }: RecurrencePickerProps) {
             </SelectContent>
           </Select>
         </div>
+
+        {customUnit === "months" && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant={monthMode === "onthe" ? "default" : "outline"}
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => {
+                  setMonthMode("onthe");
+                  setMonthDayNumbers([]);
+                  handleCustom({ mMode: "onthe", mDayNums: [] });
+                }}
+              >
+                On the
+              </Button>
+              <Button
+                type="button"
+                variant={monthMode === "each" ? "default" : "outline"}
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => {
+                  setMonthMode("each");
+                  setMonthOrdinal("");
+                  setMonthDay("");
+                  handleCustom({ mMode: "each", ordinal: "", day: "" });
+                }}
+              >
+                Each
+              </Button>
+            </div>
+            {monthMode === "onthe" ? (
+              <div className="flex items-center gap-2">
+                <Select
+                  value={monthOrdinal}
+                  onValueChange={(v) => {
+                    setMonthOrdinal(v);
+                    handleCustom({ ordinal: v });
+                  }}
+                >
+                  <SelectTrigger size="sm" className="w-20">
+                    <SelectValue placeholder="—" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ORDINALS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={monthDay}
+                  onValueChange={(v) => {
+                    setMonthDay(v);
+                    handleCustom({ day: v });
+                  }}
+                >
+                  <SelectTrigger size="sm" className="w-28">
+                    <SelectValue placeholder="—" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MONTH_DAYS.map((d) => (
+                      <SelectItem key={d.value} value={d.value}>
+                        {d.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="grid grid-cols-7 gap-1">
+                {DAY_NUMBERS.map((num) => {
+                  const active = monthDayNumbers.includes(num);
+                  return (
+                    <Button
+                      key={num}
+                      type="button"
+                      variant={active ? "default" : "outline"}
+                      size="sm"
+                      className="h-7 w-7 p-0 text-xs"
+                      onClick={() => {
+                        const next = active
+                          ? monthDayNumbers.filter((n) => n !== num)
+                          : [...monthDayNumbers, num].sort((a, b) => a - b);
+                        setMonthDayNumbers(next);
+                        handleCustom({ mDayNums: next });
+                      }}
+                    >
+                      {num}
+                    </Button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {customUnit === "weeks" && (
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-sm text-muted-foreground">on</span>
+            {WEEK_DAYS.map((d) => {
+              const active = weekDays.includes(d.value);
+              return (
+                <Button
+                  key={d.value}
+                  type="button"
+                  variant={active ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 px-2 text-xs"
+                  onClick={() => {
+                    const next = active
+                      ? weekDays.filter((w) => w !== d.value)
+                      : [...weekDays, d.value].sort(
+                          (a, b) =>
+                            WEEK_DAYS.findIndex((w) => w.value === a) -
+                            WEEK_DAYS.findIndex((w) => w.value === b)
+                        );
+                    setWeekDays(next);
+                    handleCustom({ days: next });
+                  }}
+                >
+                  {d.label}
+                </Button>
+              );
+            })}
+          </div>
+        )}
+
+        {customUnit === "years" && (
+          <div className="space-y-2">
+            <div className="grid grid-cols-4 gap-1">
+              {MONTHS.map((m) => {
+                const active = yearMonths.includes(m.value);
+                return (
+                  <Button
+                    key={m.value}
+                    type="button"
+                    variant={active ? "default" : "outline"}
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      const next = active
+                        ? yearMonths.filter((v) => v !== m.value)
+                        : [...yearMonths, m.value].sort(
+                            (a, b) =>
+                              MONTHS.findIndex((m) => m.value === a) -
+                              MONTHS.findIndex((m) => m.value === b)
+                          );
+                      setYearMonths(next);
+                      handleCustom({ yMonths: next });
+                    }}
+                  >
+                    {m.label}
+                  </Button>
+                );
+              })}
+            </div>
+            {yearMonths.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">on the</span>
+                <Select
+                  value={yearOrdinal}
+                  onValueChange={(v) => {
+                    setYearOrdinal(v);
+                    handleCustom({ yOrdinal: v });
+                  }}
+                >
+                  <SelectTrigger size="sm" className="w-20">
+                    <SelectValue placeholder="—" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ORDINALS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={yearDay}
+                  onValueChange={(v) => {
+                    setYearDay(v);
+                    handleCustom({ yDay: v });
+                  }}
+                >
+                  <SelectTrigger size="sm" className="w-28">
+                    <SelectValue placeholder="—" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MONTH_DAYS.map((d) => (
+                      <SelectItem key={d.value} value={d.value}>
+                        {d.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+        )}
+
+        {customUnit === "years" && yearMonths.length > 0 && !yearOrdinal && !dueDate && (
+          <p className="text-xs text-amber-600 dark:text-amber-400">
+            Set a due date so the recurrence knows which day of the month to use.
+          </p>
+        )}
+        </>
       )}
 
       {value && (
@@ -196,6 +511,107 @@ function normalizeRule(rule: string): string {
   return rule.replace(/^every!\s*/, "every ").toLowerCase().trim();
 }
 
+interface ParsedRule {
+  interval: string;
+  unit: string;
+  monthOrdinal: string;
+  monthDay: string;
+  weekDays: string[];
+  monthMode: "onthe" | "each";
+  monthDayNumbers: number[];
+  yearMonths: string[];
+  yearOrdinal: string;
+  yearDay: string;
+}
+
+function parseExistingRule(rule: string): ParsedRule | null {
+  const body = rule.replace(/^every!?\s*/i, "").trim().toLowerCase();
+
+  // months each 5,15,20
+  const monthEach = body.match(/^(?:(\d+)\s+)?months?\s+each\s+([\d,]+)$/);
+  if (monthEach) {
+    return {
+      interval: monthEach[1] ?? "1",
+      unit: "months",
+      monthOrdinal: "", monthDay: "", weekDays: [],
+      monthMode: "each",
+      monthDayNumbers: monthEach[2]!.split(",").map(Number),
+      yearMonths: [], yearOrdinal: "", yearDay: "",
+    };
+  }
+
+  // months on the ordinal day
+  const monthOn = body.match(/^(?:(\d+)\s+)?months?\s+on\s+(?:the\s+)?(1st|first|2nd|second|3rd|third|4th|fourth|last)\s+(\w+)$/);
+  if (monthOn) {
+    return {
+      interval: monthOn[1] ?? "1",
+      unit: "months",
+      monthOrdinal: monthOn[2]!, monthDay: monthOn[3]!, weekDays: [],
+      monthMode: "onthe",
+      monthDayNumbers: [],
+      yearMonths: [], yearOrdinal: "", yearDay: "",
+    };
+  }
+
+  // years in months on the ordinal day
+  const yearOrd = body.match(/^(?:(\d+)\s+)?years?\s+in\s+([a-z]{3,}(?:\/[a-z]{3,})*)\s+on\s+(?:the\s+)?(1st|first|2nd|second|3rd|third|4th|fourth|last)\s+(\w+)$/);
+  if (yearOrd) {
+    return {
+      interval: yearOrd[1] ?? "1",
+      unit: "years",
+      monthOrdinal: "", monthDay: "", weekDays: [],
+      monthMode: "onthe",
+      monthDayNumbers: [],
+      yearMonths: yearOrd[2]!.split("/"),
+      yearOrdinal: yearOrd[3]!, yearDay: yearOrd[4]!,
+    };
+  }
+
+  // years in months
+  const yearIn = body.match(/^(?:(\d+)\s+)?years?\s+in\s+([a-z]{3,}(?:\/[a-z]{3,})*)$/);
+  if (yearIn) {
+    return {
+      interval: yearIn[1] ?? "1",
+      unit: "years",
+      monthOrdinal: "", monthDay: "", weekDays: [],
+      monthMode: "onthe",
+      monthDayNumbers: [],
+      yearMonths: yearIn[2]!.split("/"),
+      yearOrdinal: "", yearDay: "",
+    };
+  }
+
+  // weeks on days
+  const weeksOn = body.match(/^(?:(\d+)\s+)?weeks?\s+on\s+([a-z]{3}(?:\/[a-z]{3})+)$/);
+  if (weeksOn) {
+    return {
+      interval: weeksOn[1] ?? "1",
+      unit: "weeks",
+      monthOrdinal: "", monthDay: "",
+      weekDays: weeksOn[2]!.split("/"),
+      monthMode: "onthe",
+      monthDayNumbers: [],
+      yearMonths: [], yearOrdinal: "", yearDay: "",
+    };
+  }
+
+  // simple: N unit
+  const simple = body.match(/^(?:(\d+)\s+)?(days?|weeks?|months?|years?)$/);
+  if (simple) {
+    const unit = simple[2]!.replace(/s?$/, "s");
+    return {
+      interval: simple[1] ?? "1",
+      unit,
+      monthOrdinal: "", monthDay: "", weekDays: [],
+      monthMode: "onthe",
+      monthDayNumbers: [],
+      yearMonths: [], yearOrdinal: "", yearDay: "",
+    };
+  }
+
+  return null;
+}
+
 export function formatRecurrenceLabel(rule: string): string {
   if (!rule) return "";
   const isAfter = rule.startsWith("every!");
@@ -204,11 +620,19 @@ export function formatRecurrenceLabel(rule: string): string {
   const parts: string[] = [];
   parts.push("Every");
 
-  // Capitalize first letter of each word
+  // Capitalize each word; expand slash-separated tokens (jan/jul → Jan, Jul)
   parts.push(
     body
       .split(/\s+/)
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .map((w) => {
+        if (w.includes("/")) {
+          return w
+            .split("/")
+            .map((t) => t.charAt(0).toUpperCase() + t.slice(1))
+            .join(", ");
+        }
+        return w.charAt(0).toUpperCase() + w.slice(1);
+      })
       .join(" ")
   );
 

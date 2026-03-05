@@ -95,6 +95,7 @@ export function TaskEditModal({ task, onClose, onSave }: TaskEditModalProps) {
             {showRecurrence && (
               <RecurrencePicker
                 value={recurrence}
+                dueDate={dueDate || null}
                 onChange={(val) => {
                   setRecurrence(val);
                   if (val === null) setShowRecurrence(false);

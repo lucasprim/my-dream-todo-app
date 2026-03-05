@@ -68,6 +68,23 @@ Update task completion to handle "after completion" mode and polish edge cases.
 - [ ] Overdue recurring tasks skip to next future occurrence
 - [ ] All tests passing
 
+## Phase 4: Due Date & Recurrence in Quick Capture
+
+Extend the `QuickCapture` component so users can set due date and recurrence at task creation time, not only when editing.
+
+### Tasks
+
+- [x] Task 4.1: Update `QuickCapture` component with expandable due date and recurrence fields, toggled by icon buttons (CalendarDays, Repeat)
+- [x] Task 4.2: Update parent `onCapture` handlers in inbox, today, project, and area clients to pass `dueDate` and `recurrence` through
+- [x] Task 4.3: Add `recurrence` to `quickCaptureToInboxAction` signature and implementation
+
+### Verification
+
+- [x] `npx next build` compiles without errors
+- [ ] Manual: inbox → click calendar icon → set date → type title → submit → task has due date
+- [ ] Manual: project → click repeat icon → set recurrence → submit → task has recurrence
+- [ ] Manual: icon toggles show/hide correctly, fields reset after submit
+
 ## Final Verification
 
 - [ ] All acceptance criteria met

@@ -36,8 +36,8 @@ export function TodayClient({
   const overdue = initialDueTasks.filter((t) => t.dueDate && t.dueDate < today);
   const dueToday = initialDueTasks.filter((t) => t.dueDate === today);
 
-  const handleCapture = async (title: string) => {
-    await quickCaptureToInboxAction({ title });
+  const handleCapture = async (input: { title: string; dueDate?: string; recurrence?: string }) => {
+    await quickCaptureToInboxAction(input);
     router.refresh();
   };
 

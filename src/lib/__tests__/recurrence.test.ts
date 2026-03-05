@@ -208,6 +208,133 @@ describe("nextRecurrenceDate", () => {
     });
   });
 
+  describe("monthly specific day numbers", () => {
+    it("single day: every month each 15", () => {
+      // 2026-03-15 → next occurrence on the 15th is April 15
+      expect(nextRecurrenceDate("every month each 15", "2026-03-15")).toBe(
+        "2026-04-15"
+      );
+    });
+
+    it("multi-day same month: every month each 5,15,20 from day 5", () => {
+      // 2026-03-05 → next is the 15th of same month
+      expect(nextRecurrenceDate("every month each 5,15,20", "2026-03-05")).toBe(
+        "2026-03-15"
+      );
+    });
+
+    it("wrap to next month: every month each 5,15 from day 20", () => {
+      // 2026-03-20 → next is April 5
+      expect(nextRecurrenceDate("every month each 5,15", "2026-03-20")).toBe(
+        "2026-04-05"
+      );
+    });
+
+    it("interval > 1: every 2 months each 10", () => {
+      // 2026-03-10 → next is May 10
+      expect(nextRecurrenceDate("every 2 months each 10", "2026-03-10")).toBe(
+        "2026-05-10"
+      );
+    });
+
+    it("day 31 skips short months", () => {
+      // 2026-01-31 → Feb has no 31, March 31
+      expect(nextRecurrenceDate("every month each 31", "2026-01-31")).toBe(
+        "2026-03-31"
+      );
+    });
+
+    it("multi-day with 28+31 in Feb", () => {
+      // 2026-01-31 each 28,31 → Feb 28 is next
+      expect(nextRecurrenceDate("every month each 28,31", "2026-01-31")).toBe(
+        "2026-02-28"
+      );
+    });
+  });
+
+  describe("yearly month selection", () => {
+    it("single month: every year in jul", () => {
+      // base 2026-03-15, dtstart day=15 → Jul 15 2026
+      expect(nextRecurrenceDate("every year in jul", "2026-03-15")).toBe(
+        "2026-07-15"
+      );
+    });
+
+    it("multi-month same year: every year in jan/jul from Feb", () => {
+      // base 2026-02-10, dtstart day=10 → Jul 10 2026
+      expect(nextRecurrenceDate("every year in jan/jul", "2026-02-10")).toBe(
+        "2026-07-10"
+      );
+    });
+
+    it("wrap to next year: every year in jan/jul from Aug", () => {
+      // base 2026-08-10 → next is Jan 10 2027
+      expect(nextRecurrenceDate("every year in jan/jul", "2026-08-10")).toBe(
+        "2027-01-10"
+      );
+    });
+
+    it("interval > 1: every 2 years in mar", () => {
+      // base 2026-03-05 → next is 2028-03-05
+      expect(nextRecurrenceDate("every 2 years in mar", "2026-03-05")).toBe(
+        "2028-03-05"
+      );
+    });
+  });
+
+  describe("yearly month selection with ordinal day", () => {
+    it("last friday in mar", () => {
+      // Last Friday of March 2026 is March 27 → next is March 26 2027
+      expect(
+        nextRecurrenceDate("every year in mar on the last friday", "2026-03-27")
+      ).toBe("2027-03-26");
+    });
+
+    it("2nd tuesday in jan/jun", () => {
+      // 2026-01-13 is 2nd Tue of Jan → next is 2nd Tue of Jun = Jun 9
+      expect(
+        nextRecurrenceDate("every year in jan/jun on the 2nd tuesday", "2026-01-13")
+      ).toBe("2026-06-09");
+    });
+
+    it("4th thursday in nov (Thanksgiving)", () => {
+      // 4th Thursday of Nov 2026 is Nov 26 → next is Nov 25 2027
+      expect(
+        nextRecurrenceDate("every year in nov on the 4th thursday", "2026-11-26")
+      ).toBe("2027-11-25");
+    });
+
+    it("1st weekday in jan", () => {
+      // 1st weekday of Jan 2026 is Jan 1 (Thu) → next is Jan 1 2027 (Fri)
+      expect(
+        nextRecurrenceDate("every year in jan on the 1st weekday", "2026-01-01")
+      ).toBe("2027-01-01");
+    });
+  });
+
+  describe("after-completion variants for new patterns", () => {
+    it("every! month each 5,15", () => {
+      expect(nextRecurrenceDate("every! month each 5,15", "2026-03-05")).toBe(
+        "2026-03-15"
+      );
+      expect(isAfterCompletion("every! month each 5,15")).toBe(true);
+    });
+
+    it("every! year in jul", () => {
+      expect(nextRecurrenceDate("every! year in jul", "2026-03-15")).toBe(
+        "2026-07-15"
+      );
+      expect(isAfterCompletion("every! year in jul")).toBe(true);
+    });
+
+    it("every! year in mar on the last friday", () => {
+      expect(
+        nextRecurrenceDate("every! year in mar on the last friday", "2026-03-27")
+      ).toBe("2027-03-26");
+      expect(isAfterCompletion("every! year in mar on the last friday")).toBe(true);
+    });
+  });
+
   describe("after-completion patterns", () => {
     it("every! day", () => {
       expect(nextRecurrenceDate("every! day", "2026-03-05")).toBe("2026-03-06");
@@ -223,6 +350,57 @@ describe("nextRecurrenceDate", () => {
       expect(nextRecurrenceDate("every! month", "2026-03-05")).toBe(
         "2026-04-05"
       );
+    });
+  });
+
+  describe("compound patterns", () => {
+    it("every 2 months on the last friday", () => {
+      // 2026-03-27 is last Friday of March → next is last Friday of May = May 29
+      expect(
+        nextRecurrenceDate("every 2 months on the last friday", "2026-03-27")
+      ).toBe("2026-05-29");
+    });
+
+    it("every 3 months on the 2nd tuesday", () => {
+      // 2026-03-10 is 2nd Tuesday of March → next is 2nd Tuesday of June = June 9
+      expect(
+        nextRecurrenceDate("every 3 months on the 2nd tuesday", "2026-03-10")
+      ).toBe("2026-06-09");
+    });
+
+    it("every month on the 1st monday (interval=1)", () => {
+      // 2026-03-02 is 1st Monday of March → next is 1st Monday of April = April 6
+      expect(
+        nextRecurrenceDate("every month on the 1st monday", "2026-03-02")
+      ).toBe("2026-04-06");
+    });
+
+    it("every 2 months on the last weekday", () => {
+      // 2026-03-31 is last weekday of March (Tuesday) → next is last weekday of May = May 29 (Friday)
+      expect(
+        nextRecurrenceDate("every 2 months on the last weekday", "2026-03-31")
+      ).toBe("2026-05-29");
+    });
+
+    it("every 2 weeks on mon/wed/fri", () => {
+      // 2026-03-02 is Monday, dtstart week; next in same week = Wed March 4
+      expect(
+        nextRecurrenceDate("every 2 weeks on mon/wed/fri", "2026-03-02")
+      ).toBe("2026-03-04");
+    });
+
+    it("every 3 weeks on tue/thu", () => {
+      // 2026-03-03 is Tuesday, dtstart week; next in same week = Thu March 5
+      expect(
+        nextRecurrenceDate("every 3 weeks on tue/thu", "2026-03-03")
+      ).toBe("2026-03-05");
+    });
+
+    it("every! 2 months on the last friday (after completion)", () => {
+      expect(
+        nextRecurrenceDate("every! 2 months on the last friday", "2026-03-27")
+      ).toBe("2026-05-29");
+      expect(isAfterCompletion("every! 2 months on the last friday")).toBe(true);
     });
   });
 });

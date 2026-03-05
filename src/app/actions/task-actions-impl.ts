@@ -270,13 +270,14 @@ export async function reorderTasks(
 export async function quickCaptureToInbox(
   db: Db,
   vaultDir: string,
-  input: { title: string; dueDate?: string; priority?: Priority; tags?: string[] }
+  input: { title: string; dueDate?: string; priority?: Priority; tags?: string[]; recurrence?: string }
 ): Promise<void> {
   const task: Task = {
     title: input.title,
     completed: false,
     priority: input.priority ?? "normal",
     dueDate: input.dueDate,
+    recurrence: input.recurrence,
     tags: input.tags ?? [],
     dependsOn: [],
     mentions: [],

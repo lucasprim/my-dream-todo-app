@@ -35,11 +35,11 @@ Extend the vault indexer to discover people from `People/` folder and link menti
 
 ### Tasks
 
-- [ ] Task 2.1: Add `"people"` file type to `classifyFile()` for files in `People/` directory
-- [ ] Task 2.2: Add `VAULT_DIR_PEOPLE` to `vault-config.ts` (default: `"People"`)
-- [ ] Task 2.3: In `indexFile()`, handle `"people"` type — parse frontmatter (name, email, company), upsert into `people` table
-- [ ] Task 2.4: After indexing tasks, extract `mentions` array and upsert `task_people` join rows (resolve person name → personId, auto-create person if not in `People/` folder)
-- [ ] Task 2.5: Write tests for people indexing and mention linking
+- [x] Task 2.1: Add `"people"` file type to `classifyFile()` for files in `People/` directory
+- [x] Task 2.2: Add `VAULT_DIR_PEOPLE` to `vault-config.ts` (default: `"People"`)
+- [x] Task 2.3: In `indexFile()`, handle `"people"` type — parse frontmatter (name, email, company), upsert into `people` table
+- [x] Task 2.4: After indexing tasks, extract `mentions` array and upsert `task_people` join rows (resolve person name → personId, auto-create person if not in `People/` folder)
+- [x] Task 2.5: Write tests for people indexing and mention linking
 
 ### Verification
 

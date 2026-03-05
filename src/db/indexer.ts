@@ -6,7 +6,7 @@ import type BetterSqlite3 from "better-sqlite3";
 import { parseMarkdownFile } from "@/lib/markdown/file-parser";
 import { VAULT_DIRS } from "@/lib/vault-config";
 import * as schema from "./schema";
-import type { NewDbTask, NewProject, NewArea, NewDailyNote } from "./schema";
+import type { NewDbTask, NewProject, NewArea, NewDailyNote, NewPerson } from "./schema";
 
 type Db = ReturnType<typeof drizzle<typeof schema>>;
 
@@ -44,13 +44,47 @@ function walkMarkdownFiles(dir: string, base = dir): string[] {
 
 function classifyFile(
   filePath: string
-): "inbox" | "project" | "area" | "daily-note" | "other" {
+): "inbox" | "project" | "area" | "daily-note" | "people" | "other" {
   const dir = filePath.split("/")[0];
   if (dir === VAULT_DIRS.INBOX) return "inbox";
   if (dir === VAULT_DIRS.PROJECTS) return "project";
   if (dir === VAULT_DIRS.AREAS) return "area";
   if (dir === VAULT_DIRS.CALENDAR) return "daily-note";
+  if (dir === VAULT_DIRS.PEOPLE) return "people";
   return "other";
+}
+
+/**
+ * Resolve a person name to a person ID. If the person doesn't exist, create them.
+ */
+async function resolveOrCreatePerson(
+  db: Db,
+  name: string,
+  now: Date
+): Promise<number> {
+  const slug = name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  const existing = await db
+    .select({ id: schema.people.id })
+    .from(schema.people)
+    .where(eq(schema.people.slug, slug))
+    .limit(1);
+
+  if (existing.length > 0 && existing[0]) {
+    return existing[0].id;
+  }
+
+  const result = await db
+    .insert(schema.people)
+    .values({ slug, name, updatedAt: toIso(now) })
+    .returning({ id: schema.people.id });
+
+  return result[0]!.id;
 }
 
 // ── Index a single file ───────────────────────────────────────────────────────
@@ -159,6 +193,34 @@ async function indexFile(
     }
   }
 
+  if (kind === "people") {
+    const name = parsed.title ?? path.basename(relPath, ".md");
+    const slug = slugFromPath(relPath);
+    const existing = await db
+      .select({ id: schema.people.id })
+      .from(schema.people)
+      .where(eq(schema.people.slug, slug))
+      .limit(1);
+
+    const person: NewPerson = {
+      slug,
+      name,
+      filePath: relPath,
+      email: (fm["email"] as string) ?? null,
+      company: (fm["company"] as string) ?? null,
+      updatedAt: toIso(now),
+    };
+
+    if (existing.length > 0 && existing[0]) {
+      await db
+        .update(schema.people)
+        .set(person)
+        .where(eq(schema.people.id, existing[0].id));
+    } else {
+      await db.insert(schema.people).values(person);
+    }
+  }
+
   // Delete existing tasks for this file and re-insert
   await db.delete(schema.tasks).where(eq(schema.tasks.filePath, relPath));
 
@@ -182,7 +244,24 @@ async function indexFile(
       areaId,
       updatedAt: toIso(now),
     }));
-    await db.insert(schema.tasks).values(newTasks);
+    const insertedTasks = await db
+      .insert(schema.tasks)
+      .values(newTasks)
+      .returning({ id: schema.tasks.id });
+
+    // Link task mentions to people
+    for (let i = 0; i < parsed.tasks.length; i++) {
+      const mentions = parsed.tasks[i]?.mentions ?? [];
+      const taskRow = insertedTasks[i];
+      if (mentions.length === 0 || !taskRow) continue;
+
+      for (const mentionName of mentions) {
+        const personId = await resolveOrCreatePerson(db, mentionName, now);
+        await db
+          .insert(schema.taskPeople)
+          .values({ taskId: taskRow.id, personId });
+      }
+    }
   }
 }
 
@@ -218,6 +297,17 @@ export async function fullVaultScan(db: Db, vaultDir: string): Promise<void> {
   for (const n of dbNotes) {
     if (!fileSet.has(n.filePath)) {
       await db.delete(schema.dailyNotes).where(eq(schema.dailyNotes.filePath, n.filePath));
+    }
+  }
+
+  // Clean up orphaned people (from deleted People/ files)
+  const dbPeople = await db
+    .select({ id: schema.people.id, filePath: schema.people.filePath })
+    .from(schema.people);
+  for (const p of dbPeople) {
+    if (p.filePath && !fileSet.has(p.filePath)) {
+      await db.delete(schema.taskPeople).where(eq(schema.taskPeople.personId, p.id));
+      await db.delete(schema.people).where(eq(schema.people.id, p.id));
     }
   }
 

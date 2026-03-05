@@ -12,6 +12,32 @@ import { fullVaultScan, reindexFile } from "../indexer";
 const MIGRATIONS_DIR = path.join(process.cwd(), "drizzle");
 
 // Minimal sample vault for testing
+const PEOPLE_VAULT_FILES: Record<string, string> = {
+  "People/roberto-almeida.md": `---
+email: roberto@example.com
+company: Acme Corp
+---
+
+# Roberto Almeida
+`,
+  "People/alice-smith.md": `---
+email: alice@example.com
+---
+
+# Alice Smith
+`,
+  "Inbox/inbox.md": `---
+type: inbox
+---
+
+# Inbox
+
+- [ ] Follow up with [[@Roberto Almeida]] 📅 2026-03-10
+- [ ] Meeting with [[@Alice Smith]] and [[@Roberto Almeida]]
+- [ ] Buy groceries
+`,
+};
+
 const SAMPLE_VAULT: Record<string, string> = {
   "Inbox/inbox.md": `---
 type: inbox
@@ -217,5 +243,88 @@ type: inbox
       .from(schema.tasks)
       .where(eq(schema.tasks.filePath, "Inbox/inbox.md"));
     expect(inboxTasks.length).toBe(1);
+  });
+});
+
+describe("people indexing", () => {
+  let vaultDir: string;
+  let db: ReturnType<typeof createTestDb>;
+
+  function createPeopleVault(dir: string) {
+    for (const [relPath, content] of Object.entries(PEOPLE_VAULT_FILES)) {
+      const fullPath = path.join(dir, relPath);
+      fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+      fs.writeFileSync(fullPath, content, "utf8");
+    }
+  }
+
+  beforeEach(() => {
+    vaultDir = fs.mkdtempSync(path.join(os.tmpdir(), "vault-people-test-"));
+    createPeopleVault(vaultDir);
+    db = createTestDb();
+  });
+
+  afterEach(() => {
+    fs.rmSync(vaultDir, { recursive: true, force: true });
+  });
+
+  it("discovers people from People/ folder", async () => {
+    await fullVaultScan(db, vaultDir);
+    const allPeople = await db.select().from(schema.people);
+    expect(allPeople.length).toBe(2);
+    const names = allPeople.map((p) => p.name).sort();
+    expect(names).toEqual(["Alice Smith", "Roberto Almeida"]);
+  });
+
+  it("stores frontmatter metadata on people", async () => {
+    await fullVaultScan(db, vaultDir);
+    const allPeople = await db.select().from(schema.people);
+    const roberto = allPeople.find((p) => p.name === "Roberto Almeida");
+    expect(roberto?.email).toBe("roberto@example.com");
+    expect(roberto?.company).toBe("Acme Corp");
+  });
+
+  it("links task mentions to task_people join table", async () => {
+    await fullVaultScan(db, vaultDir);
+    const allLinks = await db.select().from(schema.taskPeople);
+    // Task 1 mentions Roberto (1 link), Task 2 mentions Alice + Roberto (2 links), Task 3 has no mentions
+    expect(allLinks.length).toBe(3);
+  });
+
+  it("auto-creates person from mention if not in People/ folder", async () => {
+    // Add a task mentioning someone not in People/
+    const inboxPath = path.join(vaultDir, "Inbox/inbox.md");
+    fs.writeFileSync(
+      inboxPath,
+      `---
+type: inbox
+---
+
+# Inbox
+
+- [ ] Call [[@Dr. New Person]]
+`,
+      "utf8"
+    );
+
+    await fullVaultScan(db, vaultDir);
+    const allPeople = await db.select().from(schema.people);
+    const newPerson = allPeople.find((p) => p.name === "Dr. New Person");
+    expect(newPerson).toBeDefined();
+    expect(newPerson?.filePath).toBeNull();
+  });
+
+  it("cleans up people from deleted People/ files on full scan", async () => {
+    await fullVaultScan(db, vaultDir);
+
+    // Delete Alice's file
+    fs.unlinkSync(path.join(vaultDir, "People/alice-smith.md"));
+
+    await fullVaultScan(db, vaultDir);
+    const allPeople = await db.select().from(schema.people);
+    // Alice had a filePath, so she gets cleaned up. But she's still mentioned in tasks,
+    // so she gets auto-created again (without filePath) during task indexing.
+    const alice = allPeople.find((p) => p.name === "Alice Smith");
+    expect(alice?.filePath).toBeNull();
   });
 });

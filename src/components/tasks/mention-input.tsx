@@ -8,10 +8,12 @@ import {
   type KeyboardEvent,
   type ChangeEvent,
 } from "react";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { searchPeopleAction } from "@/app/actions/people-actions";
 import type { Person } from "@/db/schema";
+
+const INPUT_BASE_CLASSES =
+  "h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
 
 interface MentionInputProps {
   value: string;
@@ -37,13 +39,10 @@ export function MentionInput({
   const [suggestions, setSuggestions] = useState<Person[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [activeMention, setActiveMention] = useState<{ query: string } | null>(null);
+  const [mentionActive, setMentionActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  // Keep a ref to the latest value so insertMention always sees current text
-  const valueRef = useRef(value);
-  valueRef.current = value;
 
   const searchMentions = useCallback(async (query: string) => {
     if (query.length < 1) {
@@ -72,13 +71,13 @@ export function MentionInput({
       if (beforeAt.endsWith("[[")) {
         // Already inside wiki-link — don't show autocomplete
         setShowSuggestions(false);
-        setActiveMention(null);
+        setMentionActive(false);
         return;
       }
 
       const query = textBefore.slice(atIndex + 1);
       if (!query.includes("\n") && !query.includes(" ")) {
-        setActiveMention({ query });
+        setMentionActive(true);
         if (debounceRef.current) clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(() => searchMentions(query), 150);
         return;
@@ -86,33 +85,45 @@ export function MentionInput({
     }
 
     setShowSuggestions(false);
-    setActiveMention(null);
+    setMentionActive(false);
   };
 
+  // Read value + cursor directly from the DOM — no React state dependency
   const insertMention = (person: Person) => {
-    if (!activeMention) return;
+    const input = inputRef.current;
+    if (!input) return;
 
-    // Use the ref to get the absolutely latest value
-    const currentValue = valueRef.current;
-    // Find the @query pattern we need to replace — search from the end
-    const searchStr = `@${activeMention.query}`;
-    const idx = currentValue.lastIndexOf(searchStr);
-    if (idx === -1) return;
+    const val = input.value;
+    const cursor = input.selectionStart ?? val.length;
 
-    const before = currentValue.slice(0, idx);
-    const after = currentValue.slice(idx + searchStr.length);
+    // Scan backwards from cursor to find the triggering @
+    let atPos = -1;
+    for (let i = cursor - 1; i >= 0; i--) {
+      if (val[i] === "@") {
+        // Skip if this @ is part of an existing [[@...]]
+        if (i >= 2 && val[i - 2] === "[" && val[i - 1] === "[") break;
+        atPos = i;
+        break;
+      }
+      if (val[i] === " " || val[i] === "\n") break;
+    }
+    if (atPos === -1) return;
+
+    const before = val.slice(0, atPos);
+    const after = val.slice(cursor);
     const mention = `[[@${person.name}]]`;
-    const newValue = before + mention + (after.startsWith(" ") ? after : " " + after);
+    const trailing = after.length === 0 ? " " : after.startsWith(" ") ? "" : " ";
+    const newValue = before + mention + trailing + after;
 
     onChange(newValue);
     setShowSuggestions(false);
-    setActiveMention(null);
+    setMentionActive(false);
     setSuggestions([]);
 
     requestAnimationFrame(() => {
-      const pos = before.length + mention.length + 1;
-      inputRef.current?.focus();
-      inputRef.current?.setSelectionRange(pos, pos);
+      const pos = before.length + mention.length + trailing.length;
+      input.focus();
+      input.setSelectionRange(pos, pos);
     });
   };
 
@@ -162,7 +173,7 @@ export function MentionInput({
 
   return (
     <div className="relative">
-      <Input
+      <input
         ref={inputRef}
         value={value}
         onChange={handleChange}
@@ -171,7 +182,7 @@ export function MentionInput({
         disabled={disabled}
         autoFocus={autoFocus}
         id={id}
-        className={className}
+        className={cn(INPUT_BASE_CLASSES, className)}
       />
       {showSuggestions && suggestions.length > 0 && (
         <div

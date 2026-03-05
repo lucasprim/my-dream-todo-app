@@ -1,15 +1,12 @@
 /**
- * Parse a simple Obsidian-style recurrence rule and return the next due date
+ * Parse an Obsidian-style recurrence rule and return the next due date
  * after the given base date.
  *
- * Supported patterns:
- *   every day / every N days
- *   every week / every N weeks
- *   every month / every N months
- *   every year / every N years
- *   every weekday
- *   every Monday/Tuesday/… (returns next occurrence of that weekday)
+ * Uses the rrule-based mapping layer for complex patterns, with a regex
+ * fallback for any patterns it doesn't recognize.
  */
+
+import { nextDateFromRule, isAfterCompletion } from "./recurrence-rules";
 
 const DAY_NAMES = [
   "sunday",
@@ -21,7 +18,21 @@ const DAY_NAMES = [
   "saturday",
 ];
 
+export { isAfterCompletion };
+
 export function nextRecurrenceDate(
+  recurrence: string,
+  baseDateStr: string
+): string | null {
+  // Try the rrule-based engine first
+  const rruleResult = nextDateFromRule(recurrence, baseDateStr);
+  if (rruleResult) return rruleResult;
+
+  // Fallback to legacy regex logic for unrecognized patterns
+  return legacyNextDate(recurrence, baseDateStr);
+}
+
+function legacyNextDate(
   recurrence: string,
   baseDateStr: string
 ): string | null {

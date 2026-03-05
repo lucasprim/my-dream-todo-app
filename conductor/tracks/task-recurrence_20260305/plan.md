@@ -22,7 +22,7 @@ Upgrade `src/lib/recurrence.ts` to support complex patterns using the `rrule` li
   - Ordinal: `every 2nd Tuesday`, `every 1st weekday`, `every last Friday`
   - Monthly: `every last day of month`, `every last weekday of month`
   - After-completion: `every! day`, `every! 2 weeks` (uses `!` marker like Todoist — next date relative to completion date, not original due date)
-- [ ] Task 1.3: Refactor `nextRecurrenceDate()` in `src/lib/recurrence.ts` to use the new mapping layer, falling back to existing regex logic for unrecognized patterns
+- [x] Task 1.3: Refactor `nextRecurrenceDate()` in `src/lib/recurrence.ts` to use the new mapping layer, falling back to existing regex logic for unrecognized patterns
 - [ ] Task 1.4: Write comprehensive tests for all supported patterns including edge cases (month overflow, leap year, year boundary, end-of-month ordinals)
 
 ### Verification

@@ -3,7 +3,7 @@
 **Track ID:** today_20260305
 **Spec:** [spec.md](./spec.md)
 **Created:** 2026-03-05
-**Status:** [~] In Progress
+**Status:** [x] Complete
 
 ## Overview
 
@@ -95,11 +95,11 @@ Make Today the default landing page and polish both modes.
 
 ### Tasks
 
-- [ ] Task 5.1: Change root `/` redirect from `/inbox` to `/today`
-- [ ] Task 5.2: First visit of the day auto-enters Planning Mode (no plan yet); returning visits show Focus Mode
-- [ ] Task 5.3: Visual polish — smooth transitions between modes, section headers, progress bar in Focus Mode
-- [ ] Task 5.4: Responsive design — mobile-friendly planning (stacked layout) and focus views
-- [ ] Task 5.5: Handle edge cases — midnight rollover, empty plan, tasks deleted externally, Obsidian sync conflicts
+- [x] Task 5.1: Change root `/` redirect from `/inbox` to `/today`
+- [x] Task 5.2: First visit of the day auto-enters Planning Mode (no plan yet); returning visits show Focus Mode
+- [x] Task 5.3: Visual polish — smooth transitions between modes, section headers, progress bar in Focus Mode
+- [x] Task 5.4: Responsive design — mobile-friendly planning (stacked layout) and focus views
+- [x] Task 5.5: Handle edge cases — midnight rollover, empty plan, tasks deleted externally, Obsidian sync conflicts
 
 ### Verification
 
@@ -110,12 +110,12 @@ Make Today the default landing page and polish both modes.
 
 ## Final Verification
 
-- [ ] All acceptance criteria met
-- [ ] Tests passing (`pnpm test`)
-- [ ] Daily note output is Obsidian-compatible
-- [ ] `.md` files use correct ⏳ emoji format for scheduledDate
-- [ ] Both Planning and Focus modes work end-to-end
-- [ ] Ready for review
+- [x] All acceptance criteria met
+- [x] Tests passing (`pnpm test`) — 193 tests, all green
+- [x] Daily note output is Obsidian-compatible
+- [x] `.md` files use correct ⏳ emoji format for scheduledDate
+- [x] Both Planning and Focus modes work end-to-end
+- [x] Ready for review
 
 ---
 

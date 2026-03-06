@@ -45,13 +45,13 @@ REST endpoint that accepts calendar events and upserts them, authenticated via A
 
 ### Tasks
 
-- [ ] Task 3.1: Create Zod schema for calendar event input validation (array of events with required/optional fields)
-- [ ] Task 3.2: Build route handler `POST /api/calendar/sync` — parse body, validate token, upsert events by external_id, return sync summary
-- [ ] Task 3.3: Write tests for the sync endpoint (valid sync, invalid token, malformed data, upsert/dedup behavior)
+- [x] Task 3.1: Create Zod schema for calendar event input validation (array of events with required/optional fields)
+- [x] Task 3.2: Build route handler `POST /api/calendar/sync` — parse body, validate token, upsert events by external_id, return sync summary
+- [x] Task 3.3: Write tests for the sync endpoint (valid sync, invalid token, malformed data, upsert/dedup behavior)
 
 ### Verification
 
-- [ ] API accepts valid events with valid token, rejects invalid token, handles upserts correctly
+- [x] API accepts valid events with valid token, rejects invalid token, handles upserts correctly
 
 ## Phase 4: Today Page Integration
 

@@ -59,18 +59,18 @@ Display calendar events alongside tasks in both Planning and Focus modes.
 
 ### Tasks
 
-- [ ] Task 4.1: Create query function to fetch today's calendar events from SQLite, ordered by start_time
-- [ ] Task 4.2: Create server action to toggle calendar event completion (mark done/undone)
-- [ ] Task 4.3: Build calendar event card component — shows time, title, location, with completion toggle and visual distinction for past events (end_time < now)
-- [ ] Task 4.4: Integrate calendar events into Planning Mode — display as a time-block section in the Today plan panel (right side), not in the available-tasks panel
-- [ ] Task 4.5: Integrate calendar events into Focus Mode — interleave with tasks, update progress bar to count both tasks and events
-- [ ] Task 4.6: Handle edge case: no calendar events for today (don't show empty section)
+- [x] Task 4.1: Create query function to fetch today's calendar events from SQLite, ordered by start_time
+- [x] Task 4.2: Create server action to toggle calendar event completion (mark done/undone)
+- [x] Task 4.3: Build calendar event card component — shows time, title, location, with completion toggle and visual distinction for past events (end_time < now)
+- [x] Task 4.4: Integrate calendar events into Planning Mode — display as a time-block section in the Today plan panel (right side), not in the available-tasks panel
+- [x] Task 4.5: Integrate calendar events into Focus Mode — interleave with tasks, update progress bar to count both tasks and events
+- [x] Task 4.6: Handle edge case: no calendar events for today (don't show empty section)
 
 ### Verification
 
-- [ ] Calendar events appear correctly in both Planning and Focus modes
-- [ ] Completing events updates progress bar
-- [ ] Past events are visually distinct
+- [x] Calendar events appear correctly in both Planning and Focus modes
+- [x] Completing events updates progress bar
+- [x] Past events are visually distinct
 
 ## Phase 5: Seed Script
 

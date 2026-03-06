@@ -6,7 +6,7 @@ import { TaskItem } from "@/components/tasks/task-item";
 import { QuickCapture } from "@/components/tasks/quick-capture";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import type { DbTask } from "@/db/schema";
+import type { DbTask, CalendarEvent } from "@/db/schema";
 import type { AvailableTask, ScheduledTask } from "@/db/queries";
 import {
   completeTaskAction,
@@ -30,6 +30,7 @@ interface TodayClientProps {
   scheduledTasks: ScheduledTask[];
   carryForwardTasks: DbTask[];
   availableTasks: AvailableTask[];
+  calendarEvents: CalendarEvent[];
 }
 
 export function TodayClient({
@@ -39,6 +40,7 @@ export function TodayClient({
   scheduledTasks,
   carryForwardTasks,
   availableTasks,
+  calendarEvents,
 }: TodayClientProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -102,6 +104,7 @@ export function TodayClient({
       {planned ? (
         <FocusMode
           tasks={scheduledTasks}
+          calendarEvents={calendarEvents}
           onComplete={handleComplete}
           onDelete={handleDelete}
           onUpdate={handleUpdate}
@@ -116,6 +119,7 @@ export function TodayClient({
           scheduledTasks={scheduledTasks}
           carryForwardTasks={carryForwardTasks}
           availableTasks={availableTasks}
+          calendarEvents={calendarEvents}
           onSchedule={handleSchedule}
           onUnschedule={handleUnschedule}
           onComplete={handleComplete}

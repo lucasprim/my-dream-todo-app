@@ -3,6 +3,7 @@ import {
   getTasksScheduledForDate,
   getCarryForwardTasks,
   getAvailableTasksForPlanning,
+  getCalendarEventsForDate,
 } from "@/db/queries";
 import { createOrGetDailyNote, isPlanningComplete } from "@/app/actions/daily-note-actions-impl";
 import { TodayClient } from "./today-client";
@@ -17,10 +18,11 @@ export default async function TodayPage() {
   const dailyNote = await createOrGetDailyNote(db, vaultDir, today);
   const planned = isPlanningComplete(dailyNote.content);
 
-  const [scheduledTasks, carryForwardTasks, availableTasks] = await Promise.all([
+  const [scheduledTasks, carryForwardTasks, availableTasks, calendarEvents] = await Promise.all([
     getTasksScheduledForDate(db, today),
     getCarryForwardTasks(db, today),
     getAvailableTasksForPlanning(db, today),
+    getCalendarEventsForDate(db, today),
   ]);
 
   const formattedDate = new Date(today + "T12:00:00").toLocaleDateString(
@@ -36,6 +38,7 @@ export default async function TodayPage() {
       scheduledTasks={scheduledTasks}
       carryForwardTasks={carryForwardTasks}
       availableTasks={availableTasks}
+      calendarEvents={calendarEvents}
     />
   );
 }

@@ -36,14 +36,16 @@ import {
   FolderOpen,
   Layers,
 } from "lucide-react";
-import type { DbTask } from "@/db/schema";
+import type { DbTask, CalendarEvent } from "@/db/schema";
 import type { AvailableTask } from "@/db/queries";
+import { CalendarEventItem } from "@/components/calendar/calendar-event-item";
 import { reorderTasksAction } from "@/app/actions/task-actions";
 
 interface PlanningModeProps {
   scheduledTasks: DbTask[];
   carryForwardTasks: DbTask[];
   availableTasks: AvailableTask[];
+  calendarEvents: CalendarEvent[];
   onSchedule: (taskId: number) => Promise<void>;
   onUnschedule: (taskId: number) => Promise<void>;
   onComplete: (id: number) => Promise<void>;
@@ -101,6 +103,7 @@ export function PlanningMode({
   scheduledTasks,
   carryForwardTasks,
   availableTasks,
+  calendarEvents,
   onSchedule,
   onUnschedule,
   onComplete,
@@ -267,8 +270,21 @@ export function PlanningMode({
           <h2 className="text-lg font-semibold">Today&apos;s Plan</h2>
           <span className="text-sm text-muted-foreground">
             {scheduledTasks.length} task{scheduledTasks.length !== 1 ? "s" : ""}
+            {calendarEvents.length > 0 && ` + ${calendarEvents.length} event${calendarEvents.length !== 1 ? "s" : ""}`}
           </span>
         </div>
+
+        {/* Calendar events */}
+        {calendarEvents.length > 0 && (
+          <div className="mb-4">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Calendar</h3>
+            <div className="space-y-1 rounded-lg border p-2">
+              {calendarEvents.map((event) => (
+                <CalendarEventItem key={event.id} event={event} />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Carry-forward banner */}
         {carryForwardTasks.length > 0 && (

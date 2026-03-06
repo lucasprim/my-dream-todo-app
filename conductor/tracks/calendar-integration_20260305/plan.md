@@ -29,15 +29,15 @@ Settings page with token generation, display, and regeneration. Token is shown o
 
 ### Tasks
 
-- [ ] Task 2.1: Create server actions for token generation and regeneration (generate random token, store bcrypt/sha256 hash, return plaintext once)
-- [ ] Task 2.2: Create token validation utility function (accepts bearer token string, hashes and compares against stored hash)
-- [ ] Task 2.3: Build settings page (`/settings`) with token management UI — generate button, masked display, copy-to-clipboard, regenerate with confirmation
-- [ ] Task 2.4: Add settings link to the app navigation/sidebar
+- [x] Task 2.1: Create server actions for token generation and regeneration (generate random token, store bcrypt/sha256 hash, return plaintext once)
+- [x] Task 2.2: Create token validation utility function (accepts bearer token string, hashes and compares against stored hash)
+- [x] Task 2.3: Build settings page (`/settings`) with token management UI — generate button, masked display, copy-to-clipboard, regenerate with confirmation
+- [x] Task 2.4: Add settings link to the app navigation/sidebar (already existed)
 
 ### Verification
 
-- [ ] Can generate a token, see it once, copy it, and regenerate it
-- [ ] Token validation utility correctly accepts valid tokens and rejects invalid ones
+- [x] Can generate a token, see it once, copy it, and regenerate it
+- [x] Token validation utility correctly accepts valid tokens and rejects invalid ones
 
 ## Phase 3: Calendar Sync API
 

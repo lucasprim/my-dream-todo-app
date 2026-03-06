@@ -131,6 +131,40 @@ export const dailyNotes = sqliteTable(
   (t) => [index("daily_notes_date_idx").on(t.date)]
 );
 
+// ── Calendar Events ─────────────────────────────────────────────────────────
+
+export const calendarEvents = sqliteTable(
+  "calendar_events",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    externalId: text("external_id").notNull().unique(),
+    title: text("title").notNull(),
+    startTime: text("start_time").notNull(), // ISO string
+    endTime: text("end_time").notNull(), // ISO string
+    location: text("location"),
+    description: text("description"),
+    calendarName: text("calendar_name"),
+    date: text("date").notNull(), // YYYY-MM-DD
+    completed: integer("completed").notNull().default(0), // 0 = false, 1 = true
+    createdAt: text("created_at").notNull(), // ISO string
+    updatedAt: text("updated_at").notNull(), // ISO string
+  },
+  (t) => [
+    index("calendar_events_date_idx").on(t.date),
+    index("calendar_events_external_id_idx").on(t.externalId),
+  ]
+);
+
+// ── API Tokens ──────────────────────────────────────────────────────────────
+
+export const apiTokens = sqliteTable("api_tokens", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  tokenHash: text("token_hash").notNull(), // SHA-256 hash
+  name: text("name").notNull().default("default"),
+  createdAt: text("created_at").notNull(), // ISO string
+  lastUsedAt: text("last_used_at"), // ISO string, nullable
+});
+
 // ── Types ────────────────────────────────────────────────────────────────────
 
 export type Project = typeof projects.$inferSelect;
@@ -145,3 +179,7 @@ export type Person = typeof people.$inferSelect;
 export type NewPerson = typeof people.$inferInsert;
 export type TaskPerson = typeof taskPeople.$inferSelect;
 export type NewTaskPerson = typeof taskPeople.$inferInsert;
+export type CalendarEvent = typeof calendarEvents.$inferSelect;
+export type NewCalendarEvent = typeof calendarEvents.$inferInsert;
+export type ApiToken = typeof apiTokens.$inferSelect;
+export type NewApiToken = typeof apiTokens.$inferInsert;

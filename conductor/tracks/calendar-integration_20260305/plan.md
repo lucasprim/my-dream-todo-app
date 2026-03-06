@@ -3,7 +3,7 @@
 **Track ID:** calendar-integration_20260305
 **Spec:** [spec.md](./spec.md)
 **Created:** 2026-03-05
-**Status:** [~] In Progress
+**Status:** [x] Complete
 
 ## Overview
 
@@ -78,19 +78,19 @@ A runnable script that generates realistic sample calendar events for the curren
 
 ### Tasks
 
-- [ ] Task 5.1: Create `scripts/seed-calendar.ts` — generates 5-7 realistic executive meeting events spread across the current day (standup, 1:1s, strategy review, etc.), calls the sync API with a provided token
-- [ ] Task 5.2: Add `pnpm seed:calendar` script to package.json
+- [x] Task 5.1: Create `scripts/seed-calendar.ts` — generates 5-7 realistic executive meeting events spread across the current day (standup, 1:1s, strategy review, etc.), calls the sync API with a provided token
+- [x] Task 5.2: Add `pnpm seed:calendar` script to package.json
 
 ### Verification
 
-- [ ] Running `pnpm seed:calendar` populates today's calendar events visible on the Today page
+- [x] Running `pnpm seed:calendar` populates today's calendar events visible on the Today page
 
 ## Final Verification
 
-- [ ] All acceptance criteria met
-- [ ] Tests passing
-- [ ] Seed script works end-to-end
-- [ ] Ready for review
+- [x] All acceptance criteria met
+- [x] Tests passing
+- [x] Seed script works end-to-end
+- [x] Ready for review
 
 ---
 

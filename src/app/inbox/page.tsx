@@ -2,6 +2,7 @@ import { getDb, getVaultDir } from "@/lib/db-server";
 import { getPendingTasks, listProjects, listAreas } from "@/db/queries";
 import { InboxClient } from "./inbox-client";
 import { VAULT_FILES } from "@/lib/vault-config";
+import { getTimezone, getTodayInTimezone } from "@/lib/timezone";
 import type { DbTask, Project, Area } from "@/db/schema";
 import fs from "fs";
 import path from "path";
@@ -118,7 +119,8 @@ export default async function InboxPage() {
     });
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  const timezone = getTimezone(db);
+  const today = getTodayInTimezone(timezone);
 
   return <InboxClient groups={groups} today={today} />;
 }

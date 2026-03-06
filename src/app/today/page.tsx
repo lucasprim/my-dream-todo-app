@@ -3,30 +3,37 @@ import {
   getTasksScheduledForDate,
   getCarryForwardTasks,
   getAvailableTasksForPlanning,
+  getCalendarEventsForDate,
 } from "@/db/queries";
 import { createOrGetDailyNote, isPlanningComplete } from "@/app/actions/daily-note-actions-impl";
+import { getTimezone, getTodayInTimezone } from "@/lib/timezone";
 import { TodayClient } from "./today-client";
 
 export const dynamic = "force-dynamic";
 
 export default async function TodayPage() {
-  const today = new Date().toISOString().slice(0, 10);
   const db = getDb();
+  const timezone = getTimezone(db);
+  const today = getTodayInTimezone(timezone);
   const vaultDir = getVaultDir();
 
   const dailyNote = await createOrGetDailyNote(db, vaultDir, today);
   const planned = isPlanningComplete(dailyNote.content);
 
-  const [scheduledTasks, carryForwardTasks, availableTasks] = await Promise.all([
+  const [scheduledTasks, carryForwardTasks, availableTasks, calendarEvents] = await Promise.all([
     getTasksScheduledForDate(db, today),
     getCarryForwardTasks(db, today),
     getAvailableTasksForPlanning(db, today),
+    getCalendarEventsForDate(db, today),
   ]);
 
-  const formattedDate = new Date(today + "T12:00:00").toLocaleDateString(
-    "en-US",
-    { weekday: "long", year: "numeric", month: "long", day: "numeric" }
-  );
+  const formattedDate = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(new Date());
 
   return (
     <TodayClient
@@ -36,6 +43,8 @@ export default async function TodayPage() {
       scheduledTasks={scheduledTasks}
       carryForwardTasks={carryForwardTasks}
       availableTasks={availableTasks}
+      calendarEvents={calendarEvents}
+      timezone={timezone}
     />
   );
 }

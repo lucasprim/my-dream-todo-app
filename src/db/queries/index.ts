@@ -1,7 +1,7 @@
 import { eq, and, or, not, isNull, isNotNull, lt, lte, gte, ne, like, desc, sql, count } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as schema from "../schema";
-import type { DbTask, Project, Area, DailyNote, Person } from "../schema";
+import type { DbTask, Project, Area, DailyNote, Person, CalendarEvent } from "../schema";
 
 type Db = ReturnType<typeof drizzle<typeof schema>>;
 
@@ -318,6 +318,19 @@ export async function searchPeople(
     .where(like(schema.people.name, `%${query}%`))
     .orderBy(schema.people.name)
     .limit(10);
+}
+
+// ── Calendar Events ─────────────────────────────────────────────────────────
+
+export async function getCalendarEventsForDate(
+  db: Db,
+  date: string
+): Promise<CalendarEvent[]> {
+  return db
+    .select()
+    .from(schema.calendarEvents)
+    .where(eq(schema.calendarEvents.date, date))
+    .orderBy(schema.calendarEvents.startTime);
 }
 
 // ── Daily Notes ───────────────────────────────────────────────────────────────

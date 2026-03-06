@@ -9,4 +9,6 @@
 
 | [x] | today_20260305 | Today — Daily Planning | 2026-03-05 | 2026-03-05 |
 
+| [x] | calendar-integration_20260305 | Calendar Integration | 2026-03-05 | 2026-03-06 |
+
 <!-- Tracks registered by /conductor:new-track -->

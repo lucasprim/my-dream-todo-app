@@ -7,12 +7,15 @@ import { QuickCapture } from "@/components/tasks/quick-capture";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { ListRestart, PartyPopper, Plus, Zap } from "lucide-react";
+import { ListRestart, PartyPopper, Plus } from "lucide-react";
 import type { ScheduledTask } from "@/db/queries";
+import type { CalendarEvent } from "@/db/schema";
+import { CalendarEventItem } from "@/components/calendar/calendar-event-item";
 import { scheduleTaskForDateAction } from "@/app/actions/task-actions";
 
 interface FocusModeProps {
   tasks: ScheduledTask[];
+  calendarEvents: CalendarEvent[];
   onComplete: (id: number) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
   onUpdate: (id: number, patch: { title?: string; dueDate?: string | null; recurrence?: string | null }) => Promise<void>;
@@ -21,10 +24,12 @@ interface FocusModeProps {
   onSchedule: (taskId: number) => Promise<void>;
   today: string;
   isPending: boolean;
+  timezone: string;
 }
 
 export function FocusMode({
   tasks,
+  calendarEvents,
   onComplete,
   onDelete,
   onUpdate,
@@ -33,13 +38,16 @@ export function FocusMode({
   onSchedule,
   today,
   isPending,
+  timezone,
 }: FocusModeProps) {
   const router = useRouter();
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [isCapturing, startCapture] = useTransition();
 
-  const completedCount = tasks.filter((t) => t.completed === 1).length;
-  const totalCount = tasks.length;
+  const completedTasks = tasks.filter((t) => t.completed === 1).length;
+  const completedEvents = calendarEvents.filter((e) => e.completed === 1).length;
+  const completedCount = completedTasks + completedEvents;
+  const totalCount = tasks.length + calendarEvents.length;
   const allDone = totalCount > 0 && completedCount === totalCount;
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
@@ -94,6 +102,19 @@ export function FocusMode({
         </div>
       ) : (
         <>
+          {/* Calendar events */}
+          {calendarEvents.length > 0 && (
+            <div className="mb-4">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Calendar</h3>
+              <div className="space-y-1">
+                {calendarEvents.map((event) => (
+                  <CalendarEventItem key={event.id} event={event} timezone={timezone} />
+                ))}
+              </div>
+              <Separator className="mt-4" />
+            </div>
+          )}
+
           {/* Task list */}
           <div className="space-y-1">
             {tasks.map((task) => (

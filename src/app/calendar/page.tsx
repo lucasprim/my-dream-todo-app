@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getDb } from "@/lib/db-server";
 import { listDailyNotes } from "@/db/queries";
+import { getTimezone, getTodayInTimezone } from "@/lib/timezone";
 import { CalendarDays } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,8 @@ export default async function CalendarPage() {
   const notes = await listDailyNotes(db);
   const noteDates = new Set(notes.map((n) => n.date));
 
-  const today = new Date().toISOString().slice(0, 10);
+  const timezone = getTimezone(db);
+  const today = getTodayInTimezone(timezone);
   const todayDate = new Date(today + "T12:00:00");
   const year = todayDate.getFullYear();
   const month = todayDate.getMonth();

@@ -36,6 +36,13 @@
       "when": 1772747765745,
       "tag": "0004_wealthy_scourge",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1772806437065,
+      "tag": "0005_black_quicksilver",
+      "breakpoints": true
     }
   ]
 }

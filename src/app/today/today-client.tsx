@@ -31,6 +31,7 @@ interface TodayClientProps {
   carryForwardTasks: DbTask[];
   availableTasks: AvailableTask[];
   calendarEvents: CalendarEvent[];
+  timezone: string;
 }
 
 export function TodayClient({
@@ -41,6 +42,7 @@ export function TodayClient({
   carryForwardTasks,
   availableTasks,
   calendarEvents,
+  timezone,
 }: TodayClientProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -113,6 +115,7 @@ export function TodayClient({
           onSchedule={handleSchedule}
           today={today}
           isPending={isPending}
+          timezone={timezone}
         />
       ) : (
         <PlanningMode
@@ -129,6 +132,7 @@ export function TodayClient({
           onQuickCapture={handleQuickCapture}
           today={today}
           isPending={isPending}
+          timezone={timezone}
         />
       )}
     </div>

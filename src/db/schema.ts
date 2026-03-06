@@ -165,6 +165,14 @@ export const apiTokens = sqliteTable("api_tokens", {
   lastUsedAt: text("last_used_at"), // ISO string, nullable
 });
 
+// ── Settings (key-value) ─────────────────────────────────────────────────────
+
+export const settings = sqliteTable("settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+});
+export type Setting = typeof settings.$inferSelect;
+
 // ── Types ────────────────────────────────────────────────────────────────────
 
 export type Project = typeof projects.$inferSelect;

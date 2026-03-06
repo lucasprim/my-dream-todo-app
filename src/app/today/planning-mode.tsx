@@ -55,6 +55,7 @@ interface PlanningModeProps {
   onQuickCapture: (input: { title: string; dueDate?: string; recurrence?: string }) => Promise<void>;
   today: string;
   isPending: boolean;
+  timezone: string;
 }
 
 type GroupedTasks = {
@@ -113,6 +114,7 @@ export function PlanningMode({
   onQuickCapture,
   today,
   isPending,
+  timezone,
 }: PlanningModeProps) {
   const router = useRouter();
   const [filter, setFilter] = useState("");
@@ -280,7 +282,7 @@ export function PlanningMode({
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Calendar</h3>
             <div className="space-y-1 rounded-lg border p-2">
               {calendarEvents.map((event) => (
-                <CalendarEventItem key={event.id} event={event} />
+                <CalendarEventItem key={event.id} event={event} timezone={timezone} />
               ))}
             </div>
           </div>

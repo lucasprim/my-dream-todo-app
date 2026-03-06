@@ -24,6 +24,7 @@ interface FocusModeProps {
   onSchedule: (taskId: number) => Promise<void>;
   today: string;
   isPending: boolean;
+  timezone: string;
 }
 
 export function FocusMode({
@@ -37,6 +38,7 @@ export function FocusMode({
   onSchedule,
   today,
   isPending,
+  timezone,
 }: FocusModeProps) {
   const router = useRouter();
   const [showQuickAdd, setShowQuickAdd] = useState(false);
@@ -106,7 +108,7 @@ export function FocusMode({
               <h3 className="text-sm font-medium text-muted-foreground mb-2">Calendar</h3>
               <div className="space-y-1">
                 {calendarEvents.map((event) => (
-                  <CalendarEventItem key={event.id} event={event} />
+                  <CalendarEventItem key={event.id} event={event} timezone={timezone} />
                 ))}
               </div>
               <Separator className="mt-4" />

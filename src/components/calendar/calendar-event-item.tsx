@@ -7,19 +7,19 @@ import { cn } from "@/lib/utils";
 import { Clock, MapPin } from "lucide-react";
 import type { CalendarEvent } from "@/db/schema";
 import { toggleCalendarEventAction } from "@/app/actions/calendar-actions";
-import { format, parseISO, isPast } from "date-fns";
+import { formatTimeInTimezone } from "@/lib/timezone";
 
 interface CalendarEventItemProps {
   event: CalendarEvent;
+  timezone: string;
 }
 
-export function CalendarEventItem({ event }: CalendarEventItemProps) {
+export function CalendarEventItem({ event, timezone }: CalendarEventItemProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
   const isCompleted = event.completed === 1;
-  const endTime = parseISO(event.endTime);
-  const isInPast = isPast(endTime);
+  const isInPast = new Date(event.endTime) < new Date();
 
   const handleToggle = () => {
     startTransition(async () => {
@@ -28,8 +28,8 @@ export function CalendarEventItem({ event }: CalendarEventItemProps) {
     });
   };
 
-  const startFormatted = format(parseISO(event.startTime), "h:mm a");
-  const endFormatted = format(endTime, "h:mm a");
+  const startFormatted = formatTimeInTimezone(event.startTime, timezone);
+  const endFormatted = formatTimeInTimezone(event.endTime, timezone);
 
   return (
     <div

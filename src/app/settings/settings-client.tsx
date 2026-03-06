@@ -9,12 +9,15 @@ import {
   generateTokenAction,
   regenerateTokenAction,
 } from "@/app/actions/token-actions";
+import { updateTimezoneAction } from "@/app/actions/settings-actions";
 import { Copy, Check, RefreshCw, Key } from "lucide-react";
 
 export function SettingsClient({
   hasExistingToken,
+  currentTimezone,
 }: {
   hasExistingToken: boolean;
+  currentTimezone: string;
 }) {
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -72,6 +75,15 @@ export function SettingsClient({
       </section>
 
       <section className="mt-10 space-y-4 border-t pt-8">
+        <h2 className="text-lg font-semibold">Timezone</h2>
+        <p className="text-sm text-muted-foreground">
+          Choose your timezone. This affects how &quot;today&quot; is computed
+          and how calendar event times are displayed.
+        </p>
+        <TimezoneSelector defaultTimezone={currentTimezone} />
+      </section>
+
+      <section className="mt-10 space-y-4 border-t pt-8">
         <h2 className="text-lg font-semibold">API Token</h2>
         <p className="text-sm text-muted-foreground">
           Generate a token for external integrations (e.g. calendar sync). The
@@ -89,6 +101,54 @@ export function SettingsClient({
           Sign Out
         </Button>
       </section>
+    </div>
+  );
+}
+
+function TimezoneSelector({ defaultTimezone }: { defaultTimezone: string }) {
+  const [timezone, setTimezone] = useState(defaultTimezone);
+  const [saved, setSaved] = useState(false);
+
+  const allTimezones = Intl.supportedValuesOf("timeZone");
+
+  // Group by region (first segment before "/")
+  const grouped = new Map<string, string[]>();
+  for (const tz of allTimezones) {
+    const region = tz.includes("/") ? tz.split("/")[0]! : "Other";
+    const list = grouped.get(region) ?? [];
+    list.push(tz);
+    grouped.set(region, list);
+  }
+
+  const handleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setTimezone(value);
+    setSaved(false);
+    await updateTimezoneAction(value);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  return (
+    <div className="space-y-2">
+      <select
+        value={timezone}
+        onChange={handleChange}
+        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+      >
+        {[...grouped.entries()].map(([region, zones]) => (
+          <optgroup key={region} label={region}>
+            {zones.map((tz) => (
+              <option key={tz} value={tz}>
+                {tz.replace(/_/g, " ")}
+              </option>
+            ))}
+          </optgroup>
+        ))}
+      </select>
+      {saved && (
+        <p className="text-sm text-green-600">Timezone updated!</p>
+      )}
     </div>
   );
 }

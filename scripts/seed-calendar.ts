@@ -15,7 +15,9 @@ if (!token) {
 }
 
 const baseUrl = process.argv[3] ?? "http://localhost:3000";
-const today = new Date().toISOString().slice(0, 10);
+const today = new Intl.DateTimeFormat("en-CA", {
+  timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+}).format(new Date());
 
 function eventTime(hour: number, minute = 0): string {
   return `${today}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00Z`;

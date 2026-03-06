@@ -10,6 +10,7 @@ import type { Priority } from "@/lib/markdown/schemas";
 import type { Task } from "@/lib/markdown/schemas";
 import { VAULT_FILES } from "@/lib/vault-config";
 import { nextRecurrenceDate, isAfterCompletion } from "@/lib/recurrence";
+import { getTimezone, getTodayInTimezone } from "@/lib/timezone";
 
 type Db = ReturnType<typeof drizzle<typeof schema>>;
 
@@ -144,12 +145,15 @@ export async function completeTask(
 
   if (!dbTask) throw new Error(`Task not found: ${taskId}`);
 
+  const timezone = getTimezone(db);
+  const today = getTodayInTimezone(timezone);
+
   const currentTask = dbTaskToMarkdownTask(dbTask);
   const nowCompleting = !currentTask.completed;
   const updatedTask: Task = {
     ...currentTask,
     completed: nowCompleting,
-    doneDate: nowCompleting ? new Date().toISOString().slice(0, 10) : undefined,
+    doneDate: nowCompleting ? today : undefined,
   };
 
   const lineNumber = dbTask.lineNumber;
@@ -161,7 +165,6 @@ export async function completeTask(
 
   // Generate next occurrence for recurring tasks (only when completing)
   if (nowCompleting && currentTask.recurrence) {
-    const today = new Date().toISOString().slice(0, 10);
     // After-completion mode (every!): base on today's date — always produces a future date
     // Fixed-schedule mode (every): base on due date, but skip forward if overdue
     const afterComp = isAfterCompletion(currentTask.recurrence);

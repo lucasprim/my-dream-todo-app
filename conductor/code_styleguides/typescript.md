@@ -1,4 +1,4 @@
-# TypeScript Style Guide - My Own Todo App
+# TypeScript Style Guide - My Dream Todo App
 
 ## General
 

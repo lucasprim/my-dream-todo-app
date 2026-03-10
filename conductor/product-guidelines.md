@@ -1,4 +1,4 @@
-# Product Guidelines - My Own Todo App
+# Product Guidelines - My Dream Todo App
 
 ## Voice and Tone
 

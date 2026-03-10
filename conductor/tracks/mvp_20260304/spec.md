@@ -7,7 +7,7 @@
 
 ## Summary
 
-Build the initial version of My Own Todo App — a full-stack web app that manages tasks as Obsidian-compatible markdown files, indexed in SQLite, with cross-device sync via Obsidian Headless Sync.
+Build the initial version of My Dream Todo App — a full-stack web app that manages tasks as Obsidian-compatible markdown files, indexed in SQLite, with cross-device sync via Obsidian Headless Sync.
 
 ## Context
 

@@ -5,7 +5,7 @@
   "current_question": 0,
   "completed_sections": ["product", "guidelines", "tech_stack", "workflow", "styleguides"],
   "answers": {
-    "project_name": "My Own Todo App",
+    "project_name": "My Dream Todo App",
     "description": "A feature-rich personal productivity web app that stores tasks as Obsidian-compatible markdown files, synced across all devices via Obsidian Headless Sync.",
     "problem_statement": "Existing todo apps lock your data in proprietary formats, don't integrate with knowledge management tools like Obsidian, and lack the flexibility to build a truly personalized productivity workflow.",
     "target_users": "Obsidian power users who want a dedicated task management UI",

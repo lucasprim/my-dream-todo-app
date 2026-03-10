@@ -4,7 +4,7 @@ status: active
 tags: [development, personal]
 ---
 
-# My Own Todo App
+# My Dream Todo App
 
 Building a web-based task manager that reads/writes Obsidian-compatible markdown files.
 

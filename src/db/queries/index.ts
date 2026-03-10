@@ -175,6 +175,59 @@ export type AvailableTask = DbTask & {
   source: "inbox" | "project" | "area" | "other";
 };
 
+export async function getRecurringDueTasks(db: Db, today: string): Promise<AvailableTask[]> {
+  const rows = await db
+    .select({
+      id: schema.tasks.id,
+      taskId: schema.tasks.taskId,
+      title: schema.tasks.title,
+      completed: schema.tasks.completed,
+      priority: schema.tasks.priority,
+      dueDate: schema.tasks.dueDate,
+      doneDate: schema.tasks.doneDate,
+      scheduledDate: schema.tasks.scheduledDate,
+      createdDate: schema.tasks.createdDate,
+      startDate: schema.tasks.startDate,
+      recurrence: schema.tasks.recurrence,
+      tags: schema.tasks.tags,
+      notes: schema.tasks.notes,
+      filePath: schema.tasks.filePath,
+      lineNumber: schema.tasks.lineNumber,
+      projectId: schema.tasks.projectId,
+      areaId: schema.tasks.areaId,
+      updatedAt: schema.tasks.updatedAt,
+      projectTitle: schema.projects.title,
+      areaTitle: schema.areas.title,
+    })
+    .from(schema.tasks)
+    .leftJoin(schema.projects, eq(schema.tasks.projectId, schema.projects.id))
+    .leftJoin(schema.areas, eq(schema.tasks.areaId, schema.areas.id))
+    .where(
+      and(
+        eq(schema.tasks.completed, 0),
+        isNotNull(schema.tasks.recurrence),
+        isNotNull(schema.tasks.dueDate),
+        lte(schema.tasks.dueDate, today),
+        or(
+          isNull(schema.tasks.scheduledDate),
+          ne(schema.tasks.scheduledDate, today)
+        )
+      )
+    )
+    .orderBy(schema.tasks.dueDate);
+
+  return rows.map((r) => ({
+    ...r,
+    source: r.filePath.startsWith("Inbox/")
+      ? ("inbox" as const)
+      : r.projectId
+        ? ("project" as const)
+        : r.areaId
+          ? ("area" as const)
+          : ("other" as const),
+  }));
+}
+
 export async function getAvailableTasksForPlanning(
   db: Db,
   date: string
@@ -212,6 +265,12 @@ export async function getAvailableTasksForPlanning(
         or(
           isNull(schema.tasks.scheduledDate),
           ne(schema.tasks.scheduledDate, date)
+        ),
+        not(
+          and(
+            isNotNull(schema.tasks.recurrence),
+            isNotNull(schema.tasks.dueDate)
+          )
         )
       )
     )

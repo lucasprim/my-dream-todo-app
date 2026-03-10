@@ -378,7 +378,7 @@ export function PlanningMode({
                   </span>
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="text-xs text-teal-600 dark:text-teal-400">
-                      {getRelativeDueLabel(task.dueDate!, today)}
+                      {task.dueDate ? getRelativeDueLabel(task.dueDate, today) : "due today"}
                     </span>
                     <Button
                       variant="ghost"

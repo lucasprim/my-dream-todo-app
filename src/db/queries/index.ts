@@ -206,8 +206,10 @@ export async function getRecurringDueTasks(db: Db, today: string): Promise<Avail
       and(
         eq(schema.tasks.completed, 0),
         isNotNull(schema.tasks.recurrence),
-        isNotNull(schema.tasks.dueDate),
-        lte(schema.tasks.dueDate, today),
+        or(
+          isNull(schema.tasks.dueDate),
+          lte(schema.tasks.dueDate, today)
+        ),
         or(
           isNull(schema.tasks.scheduledDate),
           ne(schema.tasks.scheduledDate, today)
@@ -266,10 +268,7 @@ export async function getAvailableTasksForPlanning(
           isNull(schema.tasks.scheduledDate),
           ne(schema.tasks.scheduledDate, date)
         ),
-        or(
-          isNull(schema.tasks.recurrence),
-          isNull(schema.tasks.dueDate)
-        )
+        isNull(schema.tasks.recurrence)
       )
     )
     .orderBy(schema.tasks.priority, schema.tasks.dueDate);

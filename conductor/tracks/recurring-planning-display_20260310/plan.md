@@ -13,10 +13,10 @@ Four focused code changes across the query layer and the Today page component tr
 
 ### Tasks
 
-- [~] Task 1.1: Add `getRecurringDueTasks(db, today)` to `src/db/queries/index.ts` and modify `getAvailableTasksForPlanning` to exclude recurring tasks that have a dueDate
-- [ ] Task 1.2: Wire `getRecurringDueTasks` into `src/app/today/page.tsx` (Promise.all + TodayClient prop)
-- [ ] Task 1.3: Thread `recurringDueTasks: AvailableTask[]` prop through `src/app/today/today-client.tsx` to PlanningMode
-- [ ] Task 1.4: Add teal suggestion section, `handleAddAllRecurring` handler, and `getRelativeDueLabel` helper to `src/app/today/planning-mode.tsx`
+- [x] Task 1.1: Add `getRecurringDueTasks(db, today)` to `src/db/queries/index.ts` and modify `getAvailableTasksForPlanning` to exclude recurring tasks that have a dueDate
+- [x] Task 1.2: Wire `getRecurringDueTasks` into `src/app/today/page.tsx` (Promise.all + TodayClient prop)
+- [x] Task 1.3: Thread `recurringDueTasks: AvailableTask[]` prop through `src/app/today/today-client.tsx` to PlanningMode
+- [x] Task 1.4: Add teal suggestion section, `handleAddAllRecurring` handler, and `getRelativeDueLabel` helper to `src/app/today/planning-mode.tsx`
 
 ### Verification
 

@@ -45,6 +45,7 @@ interface PlanningModeProps {
   scheduledTasks: DbTask[];
   carryForwardTasks: DbTask[];
   availableTasks: AvailableTask[];
+  recurringDueTasks: AvailableTask[];
   calendarEvents: CalendarEvent[];
   onSchedule: (taskId: number) => Promise<void>;
   onUnschedule: (taskId: number) => Promise<void>;
@@ -100,10 +101,19 @@ function groupAvailableTasks(tasks: AvailableTask[]): GroupedTasks {
   return result;
 }
 
+function getRelativeDueLabel(dueDate: string, today: string): string {
+  if (dueDate === today) return "due today";
+  const due = new Date(dueDate + "T00:00:00");
+  const todayDate = new Date(today + "T00:00:00");
+  const diffDays = Math.round((todayDate.getTime() - due.getTime()) / 86400000);
+  return diffDays === 1 ? "1 day overdue" : `${diffDays} days overdue`;
+}
+
 export function PlanningMode({
   scheduledTasks,
   carryForwardTasks,
   availableTasks,
+  recurringDueTasks,
   calendarEvents,
   onSchedule,
   onUnschedule,
@@ -153,6 +163,14 @@ export function PlanningMode({
   const handleAddAllCarryForward = () => {
     startScheduling(async () => {
       for (const task of carryForwardTasks) {
+        await onSchedule(task.id);
+      }
+    });
+  };
+
+  const handleAddAllRecurring = () => {
+    startScheduling(async () => {
+      for (const task of recurringDueTasks) {
         await onSchedule(task.id);
       }
     });
@@ -315,6 +333,53 @@ export function PlanningMode({
                     {renderTitleWithMentions(task.title)}
                   </span>
                   <div className="flex items-center gap-1 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => handleSchedule(task.id)}
+                      disabled={isScheduling}
+                      title="Add to today"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recurring tasks due today */}
+        {recurringDueTasks.length > 0 && (
+          <div className="rounded-lg border border-teal-200 bg-teal-50 dark:border-teal-900 dark:bg-teal-950/30 p-3 mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-teal-800 dark:text-teal-200">
+                🔁 {recurringDueTasks.length} recurring task{recurringDueTasks.length !== 1 ? "s" : ""} due
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs text-teal-700 dark:text-teal-300"
+                onClick={handleAddAllRecurring}
+                disabled={isScheduling}
+              >
+                Add all to today
+              </Button>
+            </div>
+            <div className="space-y-1">
+              {recurringDueTasks.map((task) => (
+                <div
+                  key={task.id}
+                  className="flex items-center justify-between gap-2 text-sm py-1"
+                >
+                  <span className="truncate text-teal-900 dark:text-teal-100">
+                    {renderTitleWithMentions(task.title)}
+                  </span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-xs text-teal-600 dark:text-teal-400">
+                      {getRelativeDueLabel(task.dueDate!, today)}
+                    </span>
                     <Button
                       variant="ghost"
                       size="icon"

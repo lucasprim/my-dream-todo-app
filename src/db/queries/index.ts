@@ -266,11 +266,9 @@ export async function getAvailableTasksForPlanning(
           isNull(schema.tasks.scheduledDate),
           ne(schema.tasks.scheduledDate, date)
         ),
-        not(
-          and(
-            isNotNull(schema.tasks.recurrence),
-            isNotNull(schema.tasks.dueDate)
-          )
+        or(
+          isNull(schema.tasks.recurrence),
+          isNull(schema.tasks.dueDate)
         )
       )
     )

@@ -3,6 +3,7 @@ import {
   getTasksScheduledForDate,
   getCarryForwardTasks,
   getAvailableTasksForPlanning,
+  getRecurringDueTasks,
   getCalendarEventsForDate,
 } from "@/db/queries";
 import { createOrGetDailyNote, isPlanningComplete } from "@/app/actions/daily-note-actions-impl";
@@ -20,10 +21,11 @@ export default async function TodayPage() {
   const dailyNote = await createOrGetDailyNote(db, vaultDir, today);
   const planned = isPlanningComplete(dailyNote.content);
 
-  const [scheduledTasks, carryForwardTasks, availableTasks, calendarEvents] = await Promise.all([
+  const [scheduledTasks, carryForwardTasks, availableTasks, recurringDueTasks, calendarEvents] = await Promise.all([
     getTasksScheduledForDate(db, today),
     getCarryForwardTasks(db, today),
     getAvailableTasksForPlanning(db, today),
+    getRecurringDueTasks(db, today),
     getCalendarEventsForDate(db, today),
   ]);
 
@@ -43,6 +45,7 @@ export default async function TodayPage() {
       scheduledTasks={scheduledTasks}
       carryForwardTasks={carryForwardTasks}
       availableTasks={availableTasks}
+      recurringDueTasks={recurringDueTasks}
       calendarEvents={calendarEvents}
       timezone={timezone}
     />

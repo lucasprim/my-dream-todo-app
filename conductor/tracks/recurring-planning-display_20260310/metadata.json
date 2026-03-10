@@ -2,9 +2,9 @@
   "id": "recurring-planning-display_20260310",
   "title": "Recurring Tasks in Planning Mode",
   "type": "enhancement",
-  "status": "in_progress",
+  "status": "complete",
   "created": "2026-03-10T00:00:00.000Z",
   "updated": "2026-03-10T00:00:00.000Z",
-  "phases": { "total": 1, "completed": 0 },
-  "tasks": { "total": 4, "completed": 0 }
+  "phases": { "total": 1, "completed": 1 },
+  "tasks": { "total": 4, "completed": 4 }
 }

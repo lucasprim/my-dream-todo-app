@@ -11,6 +11,6 @@
 
 | [x] | calendar-integration_20260305 | Calendar Integration | 2026-03-05 | 2026-03-06 |
 
-| [~] | recurring-planning-display_20260310 | Recurring Tasks in Planning Mode | 2026-03-10 | 2026-03-10 |
+| [x] | recurring-planning-display_20260310 | Recurring Tasks in Planning Mode | 2026-03-10 | 2026-03-10 |
 
 <!-- Tracks registered by /conductor:new-track -->

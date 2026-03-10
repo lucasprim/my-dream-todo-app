@@ -30,6 +30,7 @@ interface TodayClientProps {
   scheduledTasks: ScheduledTask[];
   carryForwardTasks: DbTask[];
   availableTasks: AvailableTask[];
+  recurringDueTasks: AvailableTask[];
   calendarEvents: CalendarEvent[];
   timezone: string;
 }
@@ -41,6 +42,7 @@ export function TodayClient({
   scheduledTasks,
   carryForwardTasks,
   availableTasks,
+  recurringDueTasks,
   calendarEvents,
   timezone,
 }: TodayClientProps) {
@@ -122,6 +124,7 @@ export function TodayClient({
           scheduledTasks={scheduledTasks}
           carryForwardTasks={carryForwardTasks}
           availableTasks={availableTasks}
+          recurringDueTasks={recurringDueTasks}
           calendarEvents={calendarEvents}
           onSchedule={handleSchedule}
           onUnschedule={handleUnschedule}

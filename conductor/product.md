@@ -1,8 +1,8 @@
-# Product Definition - My Own Todo App
+# Product Definition - My Dream Todo App
 
 ## Project Name
 
-My Own Todo App
+My Dream Todo App
 
 ## Description
 

@@ -1,4 +1,4 @@
-# Tech Stack - My Own Todo App
+# Tech Stack - My Dream Todo App
 
 ## Languages
 

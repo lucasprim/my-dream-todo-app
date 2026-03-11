@@ -561,6 +561,7 @@ function PlanSortableItem({
         {...listeners}
         className="cursor-grab active:cursor-grabbing p-1 text-muted-foreground hover:text-foreground touch-none"
         aria-label="Drag to reorder"
+        suppressHydrationWarning
       >
         <GripVertical className="h-4 w-4" />
       </button>

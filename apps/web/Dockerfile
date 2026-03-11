@@ -10,6 +10,7 @@ WORKDIR /app
 FROM base AS deps
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/web/package.json ./apps/web/
 RUN pnpm install --frozen-lockfile
 
 # ── Builder ───────────────────────────────────────────────────────────────────
@@ -17,13 +18,15 @@ FROM base AS builder
 
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/web ./apps/web
 
 # Generate DB migrations at build time (schema must be stable)
-RUN pnpm run db:generate || true
+RUN cd apps/web && pnpm run db:generate || true
 
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN pnpm run build
+RUN cd apps/web && pnpm run build
 
 # ── Runner ────────────────────────────────────────────────────────────────────
 FROM base AS runner
@@ -37,19 +40,19 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 # Copy standalone output
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
+COPY --from=builder /app/apps/web/.next/standalone ./
+COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder /app/apps/web/public ./apps/web/public
 
 # Copy drizzle migrations
-COPY --from=builder /app/drizzle ./drizzle
+COPY --from=builder /app/apps/web/drizzle ./drizzle
 
 # Vault and SQLite database directories (mounted via Docker volume)
 RUN mkdir -p /vault /data && chown nextjs:nodejs /vault /data
 
 RUN apk add --no-cache su-exec
 
-COPY docker-entrypoint.sh /docker-entrypoint.sh
+COPY apps/web/docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
 EXPOSE 3000

@@ -45,6 +45,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: apps/web/Dockerfile
           push: true
           tags: ${{ steps.meta-app.outputs.tags }}
           labels: ${{ steps.meta-app.outputs.labels }}
@@ -64,7 +65,7 @@ jobs:
       - name: Build and push (obsidian-sync)
         uses: docker/build-push-action@v6
         with:
-          context: ./obsidian-sync
+          context: ./apps/obsidian-sync
           push: true
           tags: ${{ steps.meta-sync.outputs.tags }}
           labels: ${{ steps.meta-sync.outputs.labels }}

@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import type BetterSqlite3 from "better-sqlite3";
 import { parseMarkdownFile } from "@/lib/markdown/file-parser";
@@ -233,49 +233,101 @@ async function indexFile(
     }
   }
 
-  // Delete existing tasks for this file and re-insert
+  // Upsert tasks for this file, preserving stable IDs across reindexes.
   // Skip task indexing for daily notes — their task lines are display copies
   // synced from real task files; indexing them creates orphaned duplicates.
-  await db.delete(schema.tasks).where(eq(schema.tasks.filePath, relPath));
-
   if (kind !== "daily-note" && parsed.tasks.length > 0) {
-    const newTasks: NewDbTask[] = parsed.tasks.map((t) => ({
-      taskId: t.taskId,
-      title: t.title,
-      completed: t.completed ? 1 : 0,
-      priority: t.priority,
-      dueDate: t.dueDate ?? null,
-      doneDate: t.doneDate ?? null,
-      scheduledDate: t.scheduledDate ?? null,
-      createdDate: t.createdDate ?? null,
-      startDate: t.startDate ?? null,
-      recurrence: t.recurrence ?? null,
-      tags: tagsToJson(t.tags ?? []),
-      notes: t.notes ?? null,
-      filePath: relPath,
-      lineNumber: t.lineNumber ?? null,
-      projectId,
-      areaId,
-      updatedAt: toIso(now),
-    }));
-    const insertedTasks = await db
-      .insert(schema.tasks)
-      .values(newTasks)
-      .returning({ id: schema.tasks.id });
+    // Track which line numbers are still present so we can delete removed tasks
+    const currentLineNumbers = new Set(
+      parsed.tasks.map((t) => t.lineNumber).filter((ln): ln is number => ln != null)
+    );
+
+    const taskIds: { id: number; index: number }[] = [];
+
+    for (let i = 0; i < parsed.tasks.length; i++) {
+      const t = parsed.tasks[i]!;
+      const taskData = {
+        taskId: t.taskId,
+        title: t.title,
+        completed: t.completed ? 1 : 0,
+        priority: t.priority,
+        dueDate: t.dueDate ?? null,
+        doneDate: t.doneDate ?? null,
+        scheduledDate: t.scheduledDate ?? null,
+        createdDate: t.createdDate ?? null,
+        startDate: t.startDate ?? null,
+        recurrence: t.recurrence ?? null,
+        tags: tagsToJson(t.tags ?? []),
+        notes: t.notes ?? null,
+        filePath: relPath,
+        lineNumber: t.lineNumber ?? null,
+        projectId,
+        areaId,
+        updatedAt: toIso(now),
+      };
+
+      // Try to find existing task by filePath + lineNumber (stable identifier)
+      const existing = t.lineNumber != null
+        ? db
+            .select({ id: schema.tasks.id })
+            .from(schema.tasks)
+            .where(
+              and(
+                eq(schema.tasks.filePath, relPath),
+                eq(schema.tasks.lineNumber, t.lineNumber)
+              )
+            )
+            .get()
+        : undefined;
+
+      if (existing) {
+        await db
+          .update(schema.tasks)
+          .set(taskData)
+          .where(eq(schema.tasks.id, existing.id))
+          .run();
+        taskIds.push({ id: existing.id, index: i });
+      } else {
+        const [inserted] = await db
+          .insert(schema.tasks)
+          .values(taskData)
+          .returning({ id: schema.tasks.id });
+        if (inserted) {
+          taskIds.push({ id: inserted.id, index: i });
+        }
+      }
+    }
+
+    // Delete tasks that no longer exist in the file (removed lines)
+    const existingTasks = await db
+      .select({ id: schema.tasks.id, lineNumber: schema.tasks.lineNumber })
+      .from(schema.tasks)
+      .where(eq(schema.tasks.filePath, relPath))
+      .all();
+    for (const t of existingTasks) {
+      if (t.lineNumber != null && !currentLineNumbers.has(t.lineNumber)) {
+        await db.delete(schema.taskPeople).where(eq(schema.taskPeople.taskId, t.id));
+        await db.delete(schema.tasks).where(eq(schema.tasks.id, t.id));
+      }
+    }
 
     // Link task mentions to people
-    for (let i = 0; i < parsed.tasks.length; i++) {
-      const mentions = parsed.tasks[i]?.mentions ?? [];
-      const taskRow = insertedTasks[i];
-      if (mentions.length === 0 || !taskRow) continue;
+    for (const { id, index } of taskIds) {
+      const mentions = parsed.tasks[index]?.mentions ?? [];
+      if (mentions.length === 0) continue;
 
+      // Clear existing mentions for this task and re-link
+      await db.delete(schema.taskPeople).where(eq(schema.taskPeople.taskId, id));
       for (const mentionName of mentions) {
         const personId = await resolveOrCreatePerson(db, vaultDir, mentionName, now);
         await db
           .insert(schema.taskPeople)
-          .values({ taskId: taskRow.id, personId });
+          .values({ taskId: id, personId });
       }
     }
+  } else {
+    // No tasks in parsed result (or daily note) — remove all tasks for this file
+    await db.delete(schema.tasks).where(eq(schema.tasks.filePath, relPath));
   }
 }
 

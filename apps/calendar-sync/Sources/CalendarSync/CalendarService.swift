@@ -1,17 +1,16 @@
-import EventKit
+@preconcurrency import EventKit
 import Foundation
 
 @Observable
 @MainActor
 final class CalendarService {
-    nonisolated(unsafe) let store = EKEventStore()
+    let store = EKEventStore()
     var availableCalendars: [EKCalendar] = []
     var accessGranted = false
 
     func requestAccess() async {
-        let eventStore = store
         do {
-            let granted = try await eventStore.requestFullAccessToEvents()
+            let granted = try await store.requestFullAccessToEvents()
             accessGranted = granted
             if granted {
                 refreshCalendars()

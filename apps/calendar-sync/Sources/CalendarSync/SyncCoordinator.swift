@@ -1,3 +1,4 @@
+@preconcurrency import EventKit
 import Foundation
 import Combine
 

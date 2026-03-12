@@ -33,6 +33,9 @@ jobs:
           # Copy binary
           cp .build/release/CalendarSync "$APP_DIR/MacOS/CalendarSync"
 
+          # Copy app icon
+          cp Sources/CalendarSync/AppIcon.icns "$APP_DIR/Resources/AppIcon.icns"
+
           # Write Info.plist
           cat > "$APP_DIR/Info.plist" << 'PLIST'
           <?xml version="1.0" encoding="UTF-8"?>
@@ -47,6 +50,8 @@ jobs:
               <string>CalendarSync</string>
               <key>CFBundleDisplayName</key>
               <string>CalendarSync</string>
+              <key>CFBundleIconFile</key>
+              <string>AppIcon</string>
               <key>CFBundleVersion</key>
               <string>${{ github.run_number }}</string>
               <key>CFBundleShortVersionString</key>

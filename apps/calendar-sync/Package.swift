@@ -9,7 +9,7 @@ let package = Package(
         .executableTarget(
             name: "CalendarSync",
             path: "Sources/CalendarSync",
-            exclude: ["Info.plist"],
+            exclude: ["Info.plist", "AppIcon.icns"],
             linkerSettings: [
                 .linkedFramework("EventKit"),
                 .linkedFramework("Network"),

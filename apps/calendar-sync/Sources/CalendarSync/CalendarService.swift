@@ -4,13 +4,14 @@ import Foundation
 @Observable
 @MainActor
 final class CalendarService {
-    let store = EKEventStore()
+    nonisolated(unsafe) let store = EKEventStore()
     var availableCalendars: [EKCalendar] = []
     var accessGranted = false
 
     func requestAccess() async {
+        let eventStore = store
         do {
-            let granted = try await store.requestFullAccessToEvents()
+            let granted = try await eventStore.requestFullAccessToEvents()
             accessGranted = granted
             if granted {
                 refreshCalendars()

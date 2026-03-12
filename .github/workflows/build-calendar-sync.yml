@@ -1,0 +1,139 @@
+name: Build CalendarSync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/calendar-sync/**"
+      - ".github/workflows/build-calendar-sync.yml"
+  pull_request:
+    paths:
+      - "apps/calendar-sync/**"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: apps/calendar-sync
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build release binary
+        run: swift build -c release
+
+      - name: Create app bundle
+        run: |
+          APP_DIR="CalendarSync.app/Contents"
+          mkdir -p "$APP_DIR/MacOS"
+          mkdir -p "$APP_DIR/Resources"
+
+          # Copy binary
+          cp .build/release/CalendarSync "$APP_DIR/MacOS/CalendarSync"
+
+          # Write Info.plist
+          cat > "$APP_DIR/Info.plist" << 'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>CalendarSync</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.lucasprim.CalendarSync</string>
+              <key>CFBundleName</key>
+              <string>CalendarSync</string>
+              <key>CFBundleDisplayName</key>
+              <string>CalendarSync</string>
+              <key>CFBundleVersion</key>
+              <string>${{ github.run_number }}</string>
+              <key>CFBundleShortVersionString</key>
+              <string>1.0.0</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>LSMinimumSystemVersion</key>
+              <string>14.0</string>
+              <key>LSUIElement</key>
+              <true/>
+              <key>NSCalendarsFullAccessUsageDescription</key>
+              <string>CalendarSync needs access to your calendars to sync events with your todo app.</string>
+          </dict>
+          </plist>
+          PLIST
+
+      - name: Sign app bundle
+        if: github.ref == 'refs/heads/main'
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+        run: |
+          if [ -z "$MACOS_CERTIFICATE" ]; then
+            echo "No signing certificate configured — using ad-hoc signing"
+            codesign --force --deep --sign - CalendarSync.app
+          else
+            # Import certificate to temporary keychain
+            KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+            security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+            security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+            security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+            echo "$MACOS_CERTIFICATE" | base64 --decode > $RUNNER_TEMP/certificate.p12
+            security import $RUNNER_TEMP/certificate.p12 -P "$MACOS_CERTIFICATE_PWD" \
+              -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+            security list-keychain -d user -s $KEYCHAIN_PATH
+
+            codesign --force --deep --options runtime \
+              --sign "$MACOS_SIGNING_IDENTITY" \
+              --timestamp \
+              CalendarSync.app
+          fi
+
+      - name: Create DMG
+        run: |
+          mkdir -p dmg-stage
+          cp -R CalendarSync.app dmg-stage/
+          ln -s /Applications dmg-stage/Applications
+          hdiutil create -volname "CalendarSync" \
+            -srcfolder dmg-stage \
+            -ov -format UDZO \
+            CalendarSync.dmg
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CalendarSync.dmg
+          path: apps/calendar-sync/CalendarSync.dmg
+
+  release:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: CalendarSync.dmg
+
+      - name: Get short SHA
+        id: sha
+        run: echo "short=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: calendar-sync/v1.0.0-build.${{ github.run_number }}
+          name: "CalendarSync build ${{ github.run_number }} (${{ steps.sha.outputs.short }})"
+          body: |
+            Automated build of CalendarSync menu bar app.
+
+            **Install:** Download `CalendarSync.dmg`, open it, and drag CalendarSync to Applications.
+
+            _Build ${{ github.run_number }} from commit ${{ github.sha }}_
+          files: CalendarSync.dmg
+          prerelease: true

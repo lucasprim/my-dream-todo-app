@@ -2,7 +2,7 @@ import Foundation
 import Security
 
 enum KeychainHelper: Sendable {
-    private static let service = "com.lucasprim.CalendarSync"
+    private static let service = "app.dreamtodo.CalendarSync"
     private static let account = "api-token"
 
     static func save(token: String) -> Bool {

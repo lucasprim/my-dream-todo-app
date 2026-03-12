@@ -45,7 +45,7 @@ jobs:
               <key>CFBundleExecutable</key>
               <string>CalendarSync</string>
               <key>CFBundleIdentifier</key>
-              <string>com.lucasprim.CalendarSync</string>
+              <string>app.dreamtodo.CalendarSync</string>
               <key>CFBundleName</key>
               <string>CalendarSync</string>
               <key>CFBundleDisplayName</key>

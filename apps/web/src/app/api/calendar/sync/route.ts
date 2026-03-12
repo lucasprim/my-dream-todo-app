@@ -3,7 +3,7 @@ import { getDb } from "@/lib/db-server";
 import { validateToken } from "@/lib/validate-token";
 import { calendarSyncInputSchema } from "./schema";
 import * as schema from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, gte, lte, notInArray } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -42,10 +42,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const { events } = parsed.data;
+  const { events, sync_window } = parsed.data;
   const now = new Date().toISOString();
   let created = 0;
   let updated = 0;
+  let deleted = 0;
 
   for (const event of events) {
     const existing = db
@@ -89,8 +90,37 @@ export async function POST(request: Request) {
     }
   }
 
+  // Reconciliation: delete events in the sync window that weren't in the payload
+  if (sync_window) {
+    const externalIds = events.map((e) => e.external_id);
+    const windowCondition = and(
+      gte(schema.calendarEvents.date, sync_window.start_date),
+      lte(schema.calendarEvents.date, sync_window.end_date)
+    );
+
+    if (externalIds.length > 0) {
+      const result = db
+        .delete(schema.calendarEvents)
+        .where(
+          and(
+            windowCondition,
+            notInArray(schema.calendarEvents.externalId, externalIds)
+          )
+        )
+        .run();
+      deleted = result.changes;
+    } else {
+      // Empty events array — clear everything in the window
+      const result = db
+        .delete(schema.calendarEvents)
+        .where(windowCondition)
+        .run();
+      deleted = result.changes;
+    }
+  }
+
   return NextResponse.json({
     ok: true,
-    summary: { total: events.length, created, updated },
+    summary: { total: events.length, created, updated, deleted },
   });
 }

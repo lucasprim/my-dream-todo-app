@@ -41,6 +41,28 @@ function makeEvent(overrides: Partial<Record<string, string>> = {}) {
   };
 }
 
+function insertEvent(
+  db: ReturnType<typeof createTestDb>,
+  overrides: Partial<Record<string, string>> = {}
+) {
+  const event = makeEvent(overrides);
+  const now = new Date().toISOString();
+  db.insert(schema.calendarEvents)
+    .values({
+      externalId: event.external_id,
+      title: event.title,
+      startTime: event.start_time,
+      endTime: event.end_time,
+      location: event.location,
+      calendarName: event.calendar_name,
+      date: event.date,
+      completed: 0,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .run();
+}
+
 describe("calendar sync", () => {
   let db: ReturnType<typeof createTestDb>;
 
@@ -56,9 +78,32 @@ describe("calendar sync", () => {
       expect(result.success).toBe(true);
     });
 
-    it("rejects empty events array", () => {
+    it("rejects empty events array without sync_window", () => {
       const result = calendarSyncInputSchema.safeParse({ events: [] });
       expect(result.success).toBe(false);
+    });
+
+    it("accepts empty events with sync_window", () => {
+      const result = calendarSyncInputSchema.safeParse({
+        events: [],
+        sync_window: { start_date: "2026-03-06", end_date: "2026-03-12" },
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it("accepts events without sync_window (backward compat)", () => {
+      const result = calendarSyncInputSchema.safeParse({
+        events: [makeEvent()],
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it("accepts events with sync_window", () => {
+      const result = calendarSyncInputSchema.safeParse({
+        events: [makeEvent()],
+        sync_window: { start_date: "2026-03-06", end_date: "2026-03-12" },
+      });
+      expect(result.success).toBe(true);
     });
 
     it("rejects event with missing title", () => {
@@ -78,6 +123,14 @@ describe("calendar sync", () => {
     it("rejects invalid datetime format for start_time", () => {
       const result = calendarSyncInputSchema.safeParse({
         events: [{ ...makeEvent(), start_time: "not-a-date" }],
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it("rejects invalid sync_window date format", () => {
+      const result = calendarSyncInputSchema.safeParse({
+        events: [makeEvent()],
+        sync_window: { start_date: "March 6", end_date: "2026-03-12" },
       });
       expect(result.success).toBe(false);
     });
@@ -190,6 +243,88 @@ describe("calendar sync", () => {
       const rows = db.select().from(schema.calendarEvents).all();
       expect(rows[0].completed).toBe(1);
       expect(rows[0].title).toBe("Renamed Meeting");
+    });
+  });
+
+  describe("reconciliation sync", () => {
+    it("removes stale events within window", () => {
+      // Insert two events on 2026-03-06
+      insertEvent(db, { external_id: "evt-keep", title: "Keep Me" });
+      insertEvent(db, { external_id: "evt-stale", title: "Delete Me" });
+
+      const rows = db.select().from(schema.calendarEvents).all();
+      expect(rows.length).toBe(2);
+
+      // Simulate reconciliation: only evt-keep is in the payload
+      const externalIds = ["evt-keep"];
+      const { and, gte, lte, notInArray } = require("drizzle-orm");
+
+      const result = db
+        .delete(schema.calendarEvents)
+        .where(
+          and(
+            gte(schema.calendarEvents.date, "2026-03-06"),
+            lte(schema.calendarEvents.date, "2026-03-12"),
+            notInArray(schema.calendarEvents.externalId, externalIds)
+          )
+        )
+        .run();
+
+      expect(result.changes).toBe(1);
+      const remaining = db.select().from(schema.calendarEvents).all();
+      expect(remaining.length).toBe(1);
+      expect(remaining[0].externalId).toBe("evt-keep");
+    });
+
+    it("does not remove events outside window", () => {
+      // Insert event on 2026-03-05 (outside window)
+      insertEvent(db, { external_id: "evt-outside", date: "2026-03-05" });
+      // Insert event on 2026-03-06 (inside window)
+      insertEvent(db, { external_id: "evt-inside", date: "2026-03-06" });
+
+      const { and, gte, lte, notInArray } = require("drizzle-orm");
+
+      // Reconcile window 2026-03-06 to 2026-03-12 with no matching events
+      db.delete(schema.calendarEvents)
+        .where(
+          and(
+            gte(schema.calendarEvents.date, "2026-03-06"),
+            lte(schema.calendarEvents.date, "2026-03-12"),
+            notInArray(schema.calendarEvents.externalId, ["evt-new"])
+          )
+        )
+        .run();
+
+      const remaining = db.select().from(schema.calendarEvents).all();
+      expect(remaining.length).toBe(1);
+      expect(remaining[0].externalId).toBe("evt-outside");
+    });
+
+    it("empty events + sync_window clears entire range", () => {
+      // Insert events in the window
+      insertEvent(db, { external_id: "evt-1", date: "2026-03-06" });
+      insertEvent(db, { external_id: "evt-2", date: "2026-03-08" });
+      insertEvent(db, { external_id: "evt-3", date: "2026-03-10" });
+      // Insert event outside the window
+      insertEvent(db, { external_id: "evt-outside", date: "2026-03-15" });
+
+      const { and, gte, lte } = require("drizzle-orm");
+
+      // Empty payload = delete everything in window
+      const result = db
+        .delete(schema.calendarEvents)
+        .where(
+          and(
+            gte(schema.calendarEvents.date, "2026-03-06"),
+            lte(schema.calendarEvents.date, "2026-03-12")
+          )
+        )
+        .run();
+
+      expect(result.changes).toBe(3);
+      const remaining = db.select().from(schema.calendarEvents).all();
+      expect(remaining.length).toBe(1);
+      expect(remaining[0].externalId).toBe("evt-outside");
     });
   });
 });

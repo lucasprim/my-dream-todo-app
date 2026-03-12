@@ -25,7 +25,7 @@ actor SyncService {
                 await self?.updateConnectivity(connected)
             }
         }
-        monitor.start(queue: DispatchQueue(label: "app.dreamtodo.CalendarSync.network"))
+        monitor.start(queue: DispatchQueue(label: "com.lucasprim.CalendarSync.network"))
     }
 
     private func updateConnectivity(_ connected: Bool) {

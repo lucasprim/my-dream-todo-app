@@ -22,6 +22,8 @@ final class CalendarService {
     }
 
     func refreshCalendars() {
+        let status = EKEventStore.authorizationStatus(for: .event)
+        accessGranted = status == .fullAccess
         availableCalendars = store.calendars(for: .event)
             .sorted { $0.title.localizedCompare($1.title) == .orderedAscending }
     }

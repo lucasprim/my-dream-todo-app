@@ -48,6 +48,9 @@ struct SettingsView: View {
         }
         .padding(16)
         .frame(width: 320)
+        .onAppear {
+            calendarService.refreshCalendars()
+        }
     }
 
     // MARK: - Status Section

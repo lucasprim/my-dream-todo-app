@@ -4,7 +4,7 @@ import SwiftUI
 @Observable
 @MainActor
 final class SettingsStore {
-    private let defaults = UserDefaults(suiteName: "com.lucasprim.CalendarSync")!
+    private let defaults = UserDefaults.standard
 
     var apiURL: String {
         didSet { defaults.set(apiURL, forKey: "apiURL") }

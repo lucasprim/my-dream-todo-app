@@ -110,13 +110,13 @@ async function indexFile(
   const fullPath = path.join(vaultDir, relPath);
   const content = fs.readFileSync(fullPath, "utf8");
   const parsed = parseMarkdownFile(content, relPath);
-  let kind = classifyFile(relPath);
+  const kind = classifyFile(relPath);
   const fm = parsed.frontmatter;
 
-  // Treat files with type: daily-note frontmatter as daily notes regardless of directory
-  if (fm["type"] === "daily-note" && kind !== "daily-note") {
-    kind = "daily-note";
-  }
+  // Files with type: daily-note frontmatter outside the calendar directory
+  // should have their tasks skipped (they are display copies, not source-of-truth).
+  // We don't reclassify kind to avoid upserting into dailyNotes (unique date constraint).
+  const skipTasks = fm["type"] === "daily-note";
 
   let projectId: number | null = null;
   let areaId: number | null = null;
@@ -241,7 +241,7 @@ async function indexFile(
   // Upsert tasks for this file, preserving stable IDs across reindexes.
   // Skip task indexing for daily notes — their task lines are display copies
   // synced from real task files; indexing them creates orphaned duplicates.
-  if (kind !== "daily-note" && parsed.tasks.length > 0) {
+  if (!skipTasks && parsed.tasks.length > 0) {
     // Track which line numbers are still present so we can delete removed tasks
     const currentLineNumbers = new Set(
       parsed.tasks.map((t) => t.lineNumber).filter((ln): ln is number => ln != null)

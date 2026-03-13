@@ -49,22 +49,24 @@ final class CalendarService {
             guard !event.isAllDay else { continue }
 
             let calendar = Calendar.current
+            let baseId = event.calendarItemExternalIdentifier ?? "unknown"
 
             // Check if event spans multiple days
             let startDay = calendar.startOfDay(for: event.startDate)
             let endDay = calendar.startOfDay(for: event.endDate)
 
             if startDay == endDay {
-                // Single-day event
+                // Single-day event — append date to make recurring occurrences unique
+                let dayStr = dateFormatter.string(from: event.startDate)
                 dtos.append(CalendarEventDTO(
-                    externalId: event.calendarItemExternalIdentifier,
+                    externalId: "\(baseId)_\(dayStr)",
                     title: event.title ?? "Untitled",
                     startTime: isoFormatter.string(from: event.startDate),
                     endTime: isoFormatter.string(from: event.endDate),
                     location: event.location,
                     description: event.notes,
                     calendarName: event.calendar?.title,
-                    date: dateFormatter.string(from: event.startDate)
+                    date: dayStr
                 ))
             } else {
                 // Multi-day: expand to one entry per day
@@ -75,7 +77,6 @@ final class CalendarService {
                     let nextDay = calendar.date(byAdding: .day, value: 1, to: currentDay)!
                     let dayEnd = min(event.endDate, nextDay)
 
-                    let baseId = event.calendarItemExternalIdentifier ?? "unknown"
                     dtos.append(CalendarEventDTO(
                         externalId: "\(baseId)_\(dayStr)",
                         title: event.title ?? "Untitled",

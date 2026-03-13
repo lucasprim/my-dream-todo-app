@@ -121,6 +121,6 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     ok: true,
-    summary: { total: events.length, created, updated, deleted },
+    summary: { total: events.length, created, updated, deleted: deleted ?? 0 },
   });
 }

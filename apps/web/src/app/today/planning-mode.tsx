@@ -35,6 +35,7 @@ import {
   Inbox,
   FolderOpen,
   Layers,
+  CalendarClock,
 } from "lucide-react";
 import type { DbTask, CalendarEvent } from "@/db/schema";
 import type { AvailableTask } from "@/db/queries";
@@ -131,11 +132,19 @@ export function PlanningMode({
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [isScheduling, startScheduling] = useTransition();
 
+  // Split out tasks due today or overdue so they appear in a prominent banner
+  const dueTodayTasks = availableTasks.filter(
+    (t) => t.dueDate && t.dueDate <= today
+  );
+  const nonDueTodayTasks = availableTasks.filter(
+    (t) => !t.dueDate || t.dueDate > today
+  );
+
   const filteredAvailable = filter
-    ? availableTasks.filter((t) =>
+    ? nonDueTodayTasks.filter((t) =>
         t.title.toLowerCase().includes(filter.toLowerCase())
       )
-    : availableTasks;
+    : nonDueTodayTasks;
 
   const grouped = groupAvailableTasks(filteredAvailable);
 
@@ -171,6 +180,14 @@ export function PlanningMode({
   const handleAddAllRecurring = () => {
     startScheduling(async () => {
       for (const task of recurringDueTasks) {
+        await onSchedule(task.id);
+      }
+    });
+  };
+
+  const handleAddAllDueToday = () => {
+    startScheduling(async () => {
+      for (const task of dueTodayTasks) {
         await onSchedule(task.id);
       }
     });
@@ -379,6 +396,54 @@ export function PlanningMode({
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="text-xs text-teal-600 dark:text-teal-400">
                       {task.dueDate ? getRelativeDueLabel(task.dueDate, today) : "due today"}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => handleSchedule(task.id)}
+                      disabled={isScheduling}
+                      title="Add to today"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Tasks due today / overdue */}
+        {dueTodayTasks.length > 0 && (
+          <div className="rounded-lg border border-rose-200 bg-rose-50 dark:border-rose-900 dark:bg-rose-950/30 p-3 mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-rose-800 dark:text-rose-200">
+                <CalendarClock className="h-4 w-4 inline-block mr-1 -mt-0.5" />
+                {dueTodayTasks.length} task{dueTodayTasks.length !== 1 ? "s" : ""} due
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs text-rose-700 dark:text-rose-300"
+                onClick={handleAddAllDueToday}
+                disabled={isScheduling}
+              >
+                Add all to today
+              </Button>
+            </div>
+            <div className="space-y-1">
+              {dueTodayTasks.map((task) => (
+                <div
+                  key={task.id}
+                  className="flex items-center justify-between gap-2 text-sm py-1"
+                >
+                  <span className="truncate text-rose-900 dark:text-rose-100">
+                    {renderTitleWithMentions(task.title)}
+                  </span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-xs text-rose-600 dark:text-rose-400">
+                      {getRelativeDueLabel(task.dueDate!, today)}
                     </span>
                     <Button
                       variant="ghost"

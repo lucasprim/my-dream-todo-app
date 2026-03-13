@@ -110,8 +110,13 @@ async function indexFile(
   const fullPath = path.join(vaultDir, relPath);
   const content = fs.readFileSync(fullPath, "utf8");
   const parsed = parseMarkdownFile(content, relPath);
-  const kind = classifyFile(relPath);
+  let kind = classifyFile(relPath);
   const fm = parsed.frontmatter;
+
+  // Treat files with type: daily-note frontmatter as daily notes regardless of directory
+  if (fm["type"] === "daily-note" && kind !== "daily-note") {
+    kind = "daily-note";
+  }
 
   let projectId: number | null = null;
   let areaId: number | null = null;

@@ -366,7 +366,9 @@ export async function fullVaultScan(db: Db, vaultDir: string): Promise<void> {
 
   const dbNotes = await db.select({ filePath: schema.dailyNotes.filePath }).from(schema.dailyNotes);
   for (const n of dbNotes) {
-    if (!fileSet.has(n.filePath)) {
+    // Remove daily notes whose source files no longer exist OR whose filePath
+    // is outside the configured calendar directory (stale rows from misconfiguration)
+    if (!fileSet.has(n.filePath) || !n.filePath.startsWith(VAULT_DIRS.CALENDAR + "/")) {
       await db.delete(schema.dailyNotes).where(eq(schema.dailyNotes.filePath, n.filePath));
     }
   }

@@ -16,6 +16,13 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   title: "My Tasks",
   description: "Obsidian-powered task management",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "16x16 32x32" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/apple-icon.png",
+  },
 };
 
 export default async function RootLayout({

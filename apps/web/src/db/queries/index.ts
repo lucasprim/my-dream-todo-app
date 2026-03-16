@@ -163,7 +163,8 @@ export async function getCarryForwardTasks(db: Db, today: string): Promise<DbTas
       and(
         eq(schema.tasks.completed, 0),
         isNotNull(schema.tasks.scheduledDate),
-        lt(schema.tasks.scheduledDate, today)
+        lt(schema.tasks.scheduledDate, today),
+        isNull(schema.tasks.recurrence)
       )
     )
     .orderBy(schema.tasks.scheduledDate);

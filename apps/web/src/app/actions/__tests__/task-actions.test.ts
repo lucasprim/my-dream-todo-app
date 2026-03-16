@@ -158,11 +158,17 @@ describe("task-actions", () => {
 
   describe("completeTask with recurrence", () => {
     it("creates next occurrence for fixed-schedule recurring task", async () => {
-      // Create a recurring task
+      // Use today's date as due date so the next occurrence is exactly 1 week out
+      const today = new Date().toISOString().slice(0, 10);
+      const nextWeek = new Date(today + "T12:00:00Z");
+      nextWeek.setUTCDate(nextWeek.getUTCDate() + 7);
+      const expectedNext = nextWeek.toISOString().slice(0, 10);
+
+      // Create a recurring task due today
       await createTask(db, vaultDir, {
         title: "Recurring task",
         filePath: "Inbox/inbox.md",
-        dueDate: "2026-03-05",
+        dueDate: today,
         recurrence: "every week",
       });
 
@@ -182,8 +188,8 @@ describe("task-actions", () => {
       );
       // Original should be completed
       expect(fileContent).toContain("- [x] Recurring task");
-      // New occurrence should be appended with next due date
-      expect(fileContent).toContain("📅 2026-03-12");
+      // New occurrence should be appended with next due date (1 week from today)
+      expect(fileContent).toContain(`📅 ${expectedNext}`);
     });
 
     it("uses today as base for after-completion mode", async () => {
@@ -254,6 +260,52 @@ describe("task-actions", () => {
       expect(uncompleted[0]!.dueDate! >= today).toBe(true);
     });
 
+    it("does not set scheduledDate on next occurrence of a scheduled recurring task", async () => {
+      // Create a recurring task with a scheduledDate
+      await createTask(db, vaultDir, {
+        title: "Scheduled recurring",
+        filePath: "Inbox/inbox.md",
+        dueDate: "2026-03-16",
+        recurrence: "every week",
+      });
+
+      // Schedule it for today
+      const tasks = await db
+        .select()
+        .from(schema.tasks)
+        .where(eq(schema.tasks.filePath, "Inbox/inbox.md"));
+      const task = tasks.find((t) => t.title === "Scheduled recurring");
+      expect(task).toBeDefined();
+
+      // Manually set scheduledDate via updateTask import
+      await updateTask(db, vaultDir, task!.id, {
+        scheduledDate: "2026-03-16",
+      });
+
+      // Re-fetch with scheduledDate set
+      const tasksAfterSchedule = await db
+        .select()
+        .from(schema.tasks)
+        .where(eq(schema.tasks.filePath, "Inbox/inbox.md"));
+      const scheduled = tasksAfterSchedule.find(
+        (t) => t.title === "Scheduled recurring" && t.scheduledDate === "2026-03-16"
+      );
+      expect(scheduled).toBeDefined();
+
+      await completeTask(db, vaultDir, scheduled!.id);
+
+      // The new occurrence should NOT have a scheduledDate
+      const allTasks = await db
+        .select()
+        .from(schema.tasks)
+        .where(eq(schema.tasks.filePath, "Inbox/inbox.md"));
+      const newOccurrence = allTasks.find(
+        (t) => t.title === "Scheduled recurring" && t.completed === 0
+      );
+      expect(newOccurrence).toBeDefined();
+      expect(newOccurrence!.scheduledDate).toBeNull();
+    });
+
     it("preserves recurrence rule on the new occurrence", async () => {
       await createTask(db, vaultDir, {
         title: "Preserve recurrence",
@@ -278,6 +330,60 @@ describe("task-actions", () => {
       );
       expect(newOccurrence).toBeDefined();
       expect(newOccurrence!.recurrence).toBe("every 2 weeks");
+    });
+  });
+
+  describe("createTask with recurrence auto-dueDate", () => {
+    it("auto-assigns dueDate when creating a recurring task without one", async () => {
+      await createTask(db, vaultDir, {
+        title: "Auto due recurring",
+        filePath: "Inbox/inbox.md",
+        recurrence: "every week",
+      });
+
+      const tasks = await db
+        .select()
+        .from(schema.tasks)
+        .where(eq(schema.tasks.filePath, "Inbox/inbox.md"));
+      const task = tasks.find((t) => t.title === "Auto due recurring");
+      expect(task).toBeDefined();
+      expect(task!.dueDate).toBeDefined();
+      expect(task!.dueDate).not.toBeNull();
+    });
+
+    it("preserves explicit dueDate when creating a recurring task", async () => {
+      await createTask(db, vaultDir, {
+        title: "Explicit due recurring",
+        filePath: "Inbox/inbox.md",
+        dueDate: "2026-06-01",
+        recurrence: "every week",
+      });
+
+      const tasks = await db
+        .select()
+        .from(schema.tasks)
+        .where(eq(schema.tasks.filePath, "Inbox/inbox.md"));
+      const task = tasks.find((t) => t.title === "Explicit due recurring");
+      expect(task).toBeDefined();
+      expect(task!.dueDate).toBe("2026-06-01");
+    });
+  });
+
+  describe("quickCaptureToInbox with recurrence auto-dueDate", () => {
+    it("auto-assigns dueDate when capturing a recurring task without one", async () => {
+      await quickCaptureToInbox(db, vaultDir, {
+        title: "Quick recurring",
+        recurrence: "every day",
+      });
+
+      const tasks = await db
+        .select()
+        .from(schema.tasks)
+        .where(eq(schema.tasks.filePath, "Inbox/inbox.md"));
+      const task = tasks.find((t) => t.title === "Quick recurring");
+      expect(task).toBeDefined();
+      expect(task!.dueDate).toBeDefined();
+      expect(task!.dueDate).not.toBeNull();
     });
   });
 

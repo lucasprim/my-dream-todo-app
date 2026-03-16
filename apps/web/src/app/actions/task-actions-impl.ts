@@ -66,11 +66,21 @@ export async function createTask(
     recurrence?: string;
   }
 ): Promise<void> {
+  let dueDate = input.dueDate;
+  if (!dueDate && input.recurrence) {
+    const timezone = getTimezone(db);
+    const today = getTodayInTimezone(timezone);
+    const d = new Date(today + "T12:00:00Z");
+    d.setUTCDate(d.getUTCDate() - 1);
+    const yesterday = d.toISOString().slice(0, 10);
+    dueDate = nextRecurrenceDate(input.recurrence, yesterday) ?? undefined;
+  }
+
   const task: Task = {
     title: input.title,
     completed: false,
     priority: input.priority ?? "normal",
-    dueDate: input.dueDate,
+    dueDate,
     tags: input.tags ?? [],
     recurrence: input.recurrence,
     dependsOn: [],
@@ -186,6 +196,7 @@ export async function completeTask(
         dueDate: nextDue,
         doneDate: undefined,
         createdDate: today,
+        scheduledDate: undefined,
       };
       newContent = appendTask(newContent, nextTask);
     }
@@ -309,11 +320,21 @@ export async function quickCaptureToInbox(
   vaultDir: string,
   input: { title: string; dueDate?: string; priority?: Priority; tags?: string[]; recurrence?: string }
 ): Promise<number> {
+  let dueDate = input.dueDate;
+  if (!dueDate && input.recurrence) {
+    const timezone = getTimezone(db);
+    const today = getTodayInTimezone(timezone);
+    const d = new Date(today + "T12:00:00Z");
+    d.setUTCDate(d.getUTCDate() - 1);
+    const yesterday = d.toISOString().slice(0, 10);
+    dueDate = nextRecurrenceDate(input.recurrence, yesterday) ?? undefined;
+  }
+
   const task: Task = {
     title: input.title,
     completed: false,
     priority: input.priority ?? "normal",
-    dueDate: input.dueDate,
+    dueDate,
     recurrence: input.recurrence,
     tags: input.tags ?? [],
     dependsOn: [],

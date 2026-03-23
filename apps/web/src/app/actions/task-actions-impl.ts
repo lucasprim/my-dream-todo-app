@@ -183,8 +183,8 @@ export async function completeTask(
 
     // For fixed-schedule: if the next occurrence is still in the past, keep
     // advancing until we land on a future date (handles overdue tasks)
-    if (!afterComp && nextDue && nextDue < today) {
-      while (nextDue && nextDue < today) {
+    if (!afterComp && nextDue && nextDue <= today) {
+      while (nextDue && nextDue <= today) {
         nextDue = nextRecurrenceDate(currentTask.recurrence, nextDue);
       }
     }

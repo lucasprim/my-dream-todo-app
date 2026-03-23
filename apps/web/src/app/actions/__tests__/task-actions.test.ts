@@ -257,7 +257,42 @@ describe("task-actions", () => {
       );
       expect(uncompleted).toHaveLength(1);
       const today = new Date().toISOString().slice(0, 10);
-      expect(uncompleted[0]!.dueDate! >= today).toBe(true);
+      expect(uncompleted[0]!.dueDate! > today).toBe(true);
+    });
+
+    it("creates next occurrence strictly after today for overdue daily task", async () => {
+      // Simulate: "read the bible" daily task, overdue by 5 days, completed today
+      const today = new Date().toISOString().slice(0, 10);
+      const fiveDaysAgo = new Date(Date.now() - 5 * 86400000)
+        .toISOString()
+        .slice(0, 10);
+
+      await createTask(db, vaultDir, {
+        title: "Read the bible",
+        filePath: "Inbox/inbox.md",
+        dueDate: fiveDaysAgo,
+        recurrence: "every day",
+      });
+
+      const tasks = await db
+        .select()
+        .from(schema.tasks)
+        .where(eq(schema.tasks.filePath, "Inbox/inbox.md"));
+      const task = tasks.find((t) => t.title === "Read the bible");
+      expect(task).toBeDefined();
+
+      await completeTask(db, vaultDir, task!.id);
+
+      const allTasks = await db
+        .select()
+        .from(schema.tasks)
+        .where(eq(schema.tasks.filePath, "Inbox/inbox.md"));
+      const uncompleted = allTasks.filter(
+        (t) => t.title === "Read the bible" && t.completed === 0
+      );
+      expect(uncompleted).toHaveLength(1);
+      // Next occurrence must be TOMORROW, not today
+      expect(uncompleted[0]!.dueDate! > today).toBe(true);
     });
 
     it("does not set scheduledDate on next occurrence of a scheduled recurring task", async () => {
